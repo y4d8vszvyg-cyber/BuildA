@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Website erstellen – BuildA</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+
+<nav class="nav"><div class="wrap">
+  <a class="brand" href="index.html">Build<b>A</b></a>
+  <span style="color:var(--mute);font-size:.9rem">⏱ ca. 2 Minuten</span>
+</div></nav>
+
+<main class="builder">
+  <form class="wizard" id="wizard" autocomplete="off" novalidate>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="stepinfo"><span id="stepTxt">Frage 1 von 6</span><span id="pct">0 %</span></div>
+
+    <div class="step on" data-key="industry">
+      <h2>Was machst du?</h2>
+      <p class="hint">Wähle deine Branche – die KI passt Texte, Preise und Struktur daran an.</p>
+      <div class="choices" id="industries"></div>
+    </div>
+
+    <div class="step" data-key="name">
+      <h2>Wie heißt dein Unternehmen?</h2>
+      <p class="hint">So erscheint es im Logo und bei Google.</p>
+      <input class="field" name="name" placeholder="z. B. Hair Studio München" maxlength="60">
+    </div>
+
+    <div class="step" data-key="city">
+      <h2>Wo bist du?</h2>
+      <p class="hint">Wichtig für lokale Google-Suchen wie „Friseur München“.</p>
+      <input class="field" name="city" placeholder="z. B. München" maxlength="60">
+      <div class="extra">
+        <input class="field" name="address" placeholder="Straße & Nr. (optional)">
+        <input class="field" name="phone" placeholder="Telefon (optional)">
+        <input class="field" name="email" placeholder="E-Mail (optional)">
+        <input class="field" name="hours" placeholder="Öffnungszeiten (optional)">
+      </div>
+    </div>
+
+    <div class="step" data-key="services">
+      <h2>Welche Leistungen bietest du an?</h2>
+      <p class="hint">Mit Komma trennen. Tipp: Klick auf die Vorschläge.</p>
+      <textarea class="field" name="services" placeholder="Haarschnitt, Färben, Styling"></textarea>
+      <div class="chips" id="suggest"></div>
+    </div>
+
+    <div class="step" data-key="audience">
+      <h2>Wer sind deine Kunden?</h2>
+      <p class="hint">Die KI schreibt die Texte direkt für diese Zielgruppe.</p>
+      <input class="field" name="audience" placeholder="z. B. Frauen 18–40" maxlength="80">
+      <div class="chips" id="audSuggest"></div>
+    </div>
+
+    <div class="step" data-key="style">
+      <h2>Welcher Stil passt zu dir?</h2>
+      <p class="hint">Farben, Schriften und Formen – alles später änderbar.</p>
+      <div class="choices" id="styles"></div>
+    </div>
+
+    <div class="navrow">
+      <button type="button" class="btn ghost" id="back" style="visibility:hidden">← Zurück</button>
+      <button type="submit" class="btn" id="next">Weiter →</button>
+    </div>
+  </form>
+
+  <div class="loader" id="loader">
+    <div class="orb"></div>
+    <h2 style="font-size:1.8rem">Die KI baut deine Website …</h2>
+    <ul class="loglines">
+      <li>Branche analysiert</li>
+      <li>Texte für deine Zielgruppe geschrieben</li>
+      <li>Leistungen &amp; Preise strukturiert</li>
+      <li>Design &amp; Farben gewählt</li>
+      <li>SEO &amp; Google-Daten erstellt</li>
+      <li>Für Handy optimiert</li>
+    </ul>
+  </div>
+
+  <div class="result" id="result">
+    <div class="rtop">
+      <h2>🎉 Deine Website ist fertig!</h2>
+      <div class="devices">
+        <button class="on" data-d="desktop">🖥 Desktop</button>
+        <button data-d="tablet">Tablet</button>
+        <button data-d="mobile">📱 Handy</button>
+      </div>
+    </div>
+    <div class="rgrid">
+      <div class="frame" id="frame"><iframe id="preview" title="Website-Vorschau" sandbox="allow-scripts allow-same-origin"></iframe></div>
+      <aside class="side">
+        <div class="card">
+          <h4>🚀 Jetzt veröffentlichen</h4>
+          <p style="color:var(--mute);font-size:.9rem">Deine Seite unter eigener Domain – in 60 Sekunden live.</p>
+          <ul class="checklist">
+            <li>Startseite, Über uns, Leistungen</li>
+            <li>Preise, FAQ, Kontakt</li>
+            <li>SEO-Texte &amp; Google-Daten</li>
+            <li>Mobile Design &amp; CTA</li>
+          </ul>
+          <button class="btn" id="publish">Veröffentlichen ab 9,99 €</button>
+        </div>
+        <div class="card">
+          <h4>✏️ Anpassen</h4>
+          <p style="color:var(--mute);font-size:.9rem">Anderer Stil? Andere Texte? Einfach neu generieren.</p>
+          <button class="btn ghost" id="restyle">🎨 Stil wechseln</button>
+          <button class="btn ghost" id="edit">← Antworten ändern</button>
+        </div>
+        <div class="card">
+          <h4>⬇️ HTML herunterladen</h4>
+          <p style="color:var(--mute);font-size:.9rem">Deine Website als Datei – zum Selbst-Hosten.</p>
+          <button class="btn ghost" id="download">Download (.html)</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="box">
+    <h3 id="mTitle">Fast geschafft! 🚀</h3>
+    <p style="color:var(--mute)">Wähle deinen Tarif und mach deine Website noch stärker:</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px" id="planPick">
+      <button type="button" class="choice" data-plan="start" data-price="9.99" data-setup="49"><span class="e">🌱</span>Start<br><small style="color:var(--mute)">9,99 €/M + 49 € einm.</small></button>
+      <button type="button" class="choice on" data-plan="pro" data-price="19.99" data-setup="0"><span class="e">🔥</span>Pro<br><small style="color:var(--mute)">19,99 €/M · Domain inkl.</small></button>
+    </div>
+
+    <p style="margin-top:22px;font-weight:700">Empfohlen für dich:</p>
+    <label class="up"><input type="checkbox" data-add="14.99"><div><b>⭐ Google-Bewertungen verbessern</b><span>Review-Booster mit QR-Code &amp; Auto-Nachfrage</span></div><em>+14,99 €</em></label>
+    <label class="up"><input type="checkbox" data-add="19.99"><div><b>📲 Automatische Instagram-Posts</b><span>KI erstellt &amp; postet 3× pro Woche</span></div><em>+19,99 €</em></label>
+    <label class="up"><input type="checkbox" data-add="9.99"><div><b>🤖 KI-Chatbot</b><span>Beantwortet Kundenfragen rund um die Uhr</span></div><em>+9,99 €</em></label>
+
+    <div class="total"><span>Monatlich</span><span id="sumM">19,99 €</span></div>
+    <div style="display:flex;justify-content:space-between;color:var(--mute)"><span>Heute einmalig</span><span id="sumS">0,00 €</span></div>
+    <button class="btn" id="checkout" style="width:100%;justify-content:center;margin-top:20px">Weiter zur Zahlung →</button>
+    <button class="btn ghost" id="closeModal" style="width:100%;justify-content:center;margin-top:10px">Später</button>
+    <p style="color:var(--mute);font-size:.8rem;text-align:center;margin-top:12px">Monatlich kündbar · 14 Tage Geld-zurück-Garantie</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="assets/generator.js"></script>
+<script>
+(function () {
+  const { INDUSTRIES, STYLES, buildSite, slug } = window.BuildA;
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
+  const steps = $$(".step");
+  const data = { industry: "", style: "" };
+  let i = 0;
+
+  const SUGGEST = {
+    friseur: ["Haarschnitt", "Färben", "Balayage", "Styling", "Hochsteckfrisur", "Bartpflege"],
+    restaurant: ["Mittagstisch", "Abendkarte", "Pizza", "Pasta", "Catering", "Brunch"],
+    handwerk: ["Reparaturen", "Sanierung", "Notdienst", "Wartung", "Montage", "Beratung"],
+    fitness: ["Personal Training", "Gruppenkurse", "Ernährungsberatung", "Online-Coaching", "Yoga"],
+    fotograf: ["Portraits", "Hochzeiten", "Business-Fotos", "Familienshooting", "Produktfotos"],
+    praxis: ["Vorsorge", "Behandlung", "Physiotherapie", "Massage", "Beratung"],
+    beratung: ["Strategieberatung", "Workshops", "Coaching", "Steuerberatung", "Marketing"],
+    sonstiges: ["Beratung", "Service", "Lieferung", "Workshops"],
+  };
+  const AUD = ["Frauen 18–40", "Familien", "Berufstätige", "Senioren", "Unternehmen", "Studierende", "alle Altersgruppen"];
+
+  // Branchen-Kacheln
+  $("#industries").innerHTML = Object.entries(INDUSTRIES)
+    .map(([k, v]) => `<button type="button" class="choice" data-v="${k}"><span class="e">${v.emoji}</span>${v.label}</button>`).join("");
+  // Stil-Kacheln
+  $("#styles").innerHTML = Object.entries(STYLES)
+    .map(([k, v]) => `<button type="button" class="choice" data-v="${k}">${v.label}<div class="sw"><i style="background:${v.primary}"></i><i style="background:${v.accent}"></i><i style="background:${v.bg}"></i></div></button>`).join("");
+  $("#audSuggest").innerHTML = AUD.map((a) => `<button type="button">${a}</button>`).join("");
+
+  function pick(container, key) {
+    container.addEventListener("click", (e) => {
+      const b = e.target.closest(".choice");
+      if (!b) return;
+      container.querySelectorAll(".choice").forEach((x) => x.classList.toggle("on", x === b));
+      data[key] = b.dataset.v;
+      setTimeout(next, 220);
+    });
+  }
+  pick($("#industries"), "industry");
+  pick($("#styles"), "style");
+
+  function renderSuggest() {
+    const list = SUGGEST[data.industry] || SUGGEST.sonstiges;
+    $("#suggest").innerHTML = list.map((s) => `<button type="button">+ ${s}</button>`).join("");
+  }
+  $("#suggest").addEventListener("click", (e) => {
+    if (e.target.tagName !== "BUTTON") return;
+    const ta = $("[name=services]");
+    const val = e.target.textContent.replace("+ ", "");
+    const cur = ta.value.split(",").map((x) => x.trim()).filter(Boolean);
+    if (!cur.includes(val)) cur.push(val);
+    ta.value = cur.join(", ");
+    e.target.remove();
+  });
+  $("#audSuggest").addEventListener("click", (e) => {
+    if (e.target.tagName === "BUTTON") $("[name=audience]").value = e.target.textContent;
+  });
+
+  function valid() {
+    const key = steps[i].dataset.key;
+    if (key === "industry" || key === "style") return !!data[key];
+    const el = steps[i].querySelector(`[name=${key}]`);
+    return el.value.trim().length > 0;
+  }
+
+  function show() {
+    steps.forEach((s, n) => s.classList.toggle("on", n === i));
+    const pct = Math.round((i / steps.length) * 100);
+    $("#bar").style.width = pct + "%";
+    $("#pct").textContent = pct + " %";
+    $("#stepTxt").textContent = `Frage ${i + 1} von ${steps.length}`;
+    $("#back").style.visibility = i ? "visible" : "hidden";
+    $("#next").textContent = i === steps.length - 1 ? "✨ Website erstellen" : "Weiter →";
+    if (steps[i].dataset.key === "services") renderSuggest();
+    const f = steps[i].querySelector("input,textarea");
+    if (f) setTimeout(() => f.focus(), 50);
+  }
+
+  function next() {
+    if (!valid()) { toast("Bitte beantworte kurz die Frage 🙂"); return; }
+    if (i < steps.length - 1) { i++; show(); } else generate();
+  }
+
+  $("#wizard").addEventListener("submit", (e) => { e.preventDefault(); next(); });
+  $("#back").addEventListener("click", () => { if (i > 0) { i--; show(); } });
+
+  function collect() {
+    const fd = new FormData($("#wizard"));
+    return { ...Object.fromEntries(fd.entries()), industry: data.industry, style: data.style };
+  }
+
+  let html = "";
+  async function generate() {
+    $("#wizard").style.display = "none";
+    $("#result").classList.remove("on");
+    $("#loader").classList.add("on");
+    const lines = $$(".loglines li");
+    lines.forEach((l) => l.classList.remove("show"));
+    for (const l of lines) { await new Promise((r) => setTimeout(r, 480)); l.classList.add("show"); }
+    html = buildSite(collect());
+    $("#preview").srcdoc = html;
+    await new Promise((r) => setTimeout(r, 400));
+    $("#loader").classList.remove("on");
+    $("#result").classList.add("on");
+    window.scrollTo({ top: 0 });
+    // Analytics-Hook: hier "website_generated" an dein Tracking senden
+  }
+
+  // Geräte-Vorschau
+  $$(".devices button").forEach((b) => b.addEventListener("click", () => {
+    $$(".devices button").forEach((x) => x.classList.toggle("on", x === b));
+    $("#frame").className = "frame " + b.dataset.d;
+  }));
+
+  $("#restyle").addEventListener("click", () => {
+    const keys = Object.keys(STYLES);
+    data.style = keys[(keys.indexOf(data.style) + 1) % keys.length];
+    toast("Neuer Stil: " + STYLES[data.style].label);
+    html = buildSite(collect());
+    $("#preview").srcdoc = html;
+  });
+  $("#edit").addEventListener("click", () => {
+    $("#result").classList.remove("on");
+    $("#wizard").style.display = "";
+    i = 0; show();
+  });
+  $("#download").addEventListener("click", () => {
+    const blob = new Blob([html], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = slug(collect().name) + ".html";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Upsell-Modal
+  const modal = $("#modal");
+  const fmt = (v) => v.toFixed(2).replace(".", ",") + " €";
+  function sum() {
+    const plan = $("#planPick .choice.on");
+    let m = +plan.dataset.price;
+    $$("#modal [data-add]").forEach((c) => { if (c.checked) m += +c.dataset.add; });
+    $("#sumM").textContent = fmt(m);
+    $("#sumS").textContent = fmt(+plan.dataset.setup);
+  }
+  $("#planPick").addEventListener("click", (e) => {
+    const b = e.target.closest(".choice"); if (!b) return;
+    $$("#planPick .choice").forEach((x) => x.classList.toggle("on", x === b)); sum();
+  });
+  $$("#modal [data-add]").forEach((c) => c.addEventListener("change", sum));
+  $("#publish").addEventListener("click", () => { modal.classList.add("on"); sum(); });
+  $("#closeModal").addEventListener("click", () => modal.classList.remove("on"));
+  modal.addEventListener("click", (e) => { if (e.target === modal) modal.classList.remove("on"); });
+  $("#checkout").addEventListener("click", () => {
+    // TODO: Hier auf Stripe Checkout / Payment Link weiterleiten, z. B.:
+    // location.href = "https://buy.stripe.com/DEIN_LINK?client_reference_id=" + encodeURIComponent(collect().name);
+    toast("Demo: Hier geht's zu Stripe Checkout 💳");
+  });
+
+  let t;
+  function toast(msg) {
+    const el = $("#toast"); el.textContent = msg; el.classList.add("on");
+    clearTimeout(t); t = setTimeout(() => el.classList.remove("on"), 2200);
+  }
+
+  // Tarif aus URL vorauswählen (?plan=start|pro|business)
+  const plan = new URLSearchParams(location.search).get("plan");
+  if (plan === "start") $$("#planPick .choice").forEach((x) => x.classList.toggle("on", x.dataset.plan === "start"));
+
+  show();
+})();
+</script>
+</body>
+</html>
