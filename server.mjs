@@ -9,7 +9,7 @@ import { handleGenerate } from "./api/copy.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
-const PUBLIC = new Set(["/index.html", "/builder.html", "/assets/app.css", "/assets/generator.js"]);
+const PUBLIC = new Set(["/index.html", "/builder.html", "/assets/app.css", "/assets/generator.js", "/assets/config.js"]);
 const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript" };
 
 function send(res, status, body, type = "application/json; charset=utf-8") {

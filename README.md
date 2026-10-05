@@ -5,10 +5,17 @@ KI-Website-Generator für lokale Unternehmen: 6 Fragen beantworten → fertige, 
 - `index.html` – Verkaufsseite (Tarife, Add-ons, Einnahmen-Rechner)
 - `builder.html` – Generator mit Live-Vorschau, „Texte neu schreiben“, Upsell und HTML-Download
 - `assets/generator.js` – baut die Kunden-Website (Design, SEO, Schema.org) aus den KI-Texten
+- `assets/config.js` – **hier deine Stripe-Zahlungslinks eintragen**
 - `api/copy.mjs` – KI-Texte über die Claude API (strukturierte Ausgabe, Rate-Limit, Fehlerbehandlung)
 - `server.mjs` – lokaler Server bzw. für einen eigenen Server/VPS
 - `netlify/functions/generate.mjs` – dieselbe API als Netlify-Funktion
 - `GESCHAEFTSPLAN.md` – Schritt für Schritt: So verdienst du damit Geld
+
+## Bezahlung einrichten
+
+1. In Stripe drei Zahlungslinks anlegen (Start, Pro, Business).
+2. Die Links in `assets/config.js` eintragen.
+3. Beim Kauf übergibt der Builder eine Referenz wie `pro__reviews-chatbot__hair-studio-muenchen` (Tarif, Add-ons, Firma). Du siehst sie im Stripe-Dashboard bei der Zahlung und weißt, was einzurichten ist. Add-ons rechnest du am Anfang per Rechnung oder eigenem Stripe-Link ab.
 
 ## Lokal starten
 
