@@ -1,0 +1,17 @@
+{
+  "name": "builda",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "BuildA – Website in 5 Minuten",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "zod": "^4.6.5"
+  }
+}

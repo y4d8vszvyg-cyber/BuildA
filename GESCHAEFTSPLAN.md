@@ -28,8 +28,9 @@ Du verkaufst also **keine Website**. Du verkaufst: *„Du wirst bei Google gefun
 | `builder.html` | Der Generator: 6 Fragen → „KI baut…“ → Live-Vorschau (Desktop/Tablet/Handy) → Upsell-Fenster → Download |
 | `assets/generator.js` | Erstellt die komplette Kunden-Website: Start, Über uns, Leistungen, Preise, FAQ, Kontakt, SEO-Meta, Google-Schema-Daten (LocalBusiness + FAQ), Mobile Design, CTA, Anruf-Button |
 | `assets/app.css` | Design der Plattform |
+| `api/copy.mjs` + `server.mjs` | **Echte KI-Texte** über die Claude API, mit Vorlagen als Rückfallebene (Anleitung in `README.md`) |
 
-**Zum Ansehen:** `index.html` im Browser öffnen, oder im Ordner `python3 -m http.server` starten und `http://localhost:8000` aufrufen.
+**Zum Ansehen:** `npm install`, dann `ANTHROPIC_API_KEY=… npm start` und `http://localhost:3000` aufrufen. Ohne Schlüssel funktioniert alles mit Vorlagentexten.
 
 Damit kannst du **ab morgen** Kunden die Demo zeigen. Bezahlen und Veröffentlichen machst du am Anfang **von Hand** (siehe Phase 1). Das ist Absicht: Erst verkaufen, dann automatisieren.
 
@@ -65,7 +66,7 @@ Erst wenn 10–20 Kunden zahlen, baust du die Technik aus:
 
 | Baustein | Empfehlung | Kosten |
 |---|---|---|
-| Echte KI-Texte | Claude API (Anthropic) über eine kleine Serverless-Funktion, ersetzt `generateCopy()` in `generator.js` | ca. 1–5 Cent pro Website |
+| Echte KI-Texte | ✅ **schon eingebaut** (`api/copy.mjs`), nur `ANTHROPIC_API_KEY` setzen | ca. 5–10 Cent pro Website |
 | Login & Datenbank | Supabase (Auth + Postgres, EU-Region) | 0–25 €/Monat |
 | Zahlungen & Abos | Stripe Billing + Kundenportal (Kündigen, Rechnungen) | 1,5 % + 0,25 € pro Zahlung |
 | Hosting der Kunden-Websites | Cloudflare Pages / „Cloudflare for SaaS“ (eigene Kunden-Domains automatisch mit SSL) | ca. 0,10 € pro Kunde |
@@ -190,7 +191,7 @@ Statt „Websites für alle“ lieber: **„BuildA für Friseure“** mit Online
 - [ ] **Ziel: 10 zahlende Kunden**, jeden Kunden fragen: „Was hätte dich fast abgehalten?“
 
 **Tag 31–60**
-- [ ] Claude API für echte KI-Texte einbauen
+- [x] Claude API für echte KI-Texte einbauen (erledigt – Schlüssel in Netlify eintragen und Ausgabenlimit setzen)
 - [ ] Stripe Billing + Kundenportal (Abos automatisch)
 - [ ] Partnerprogramm starten: 5 Steuerberater, 2 Druckereien anschreiben (per Brief oder persönlich)
 - [ ] Erstes Add-on live: **Review-Booster** (am einfachsten zu bauen, sichtbarster Nutzen)
@@ -219,7 +220,7 @@ Statt „Websites für alle“ lieber: **„BuildA für Friseure“** mit Online
 
 ## 8. Nächste Schritte im Code (wenn du so weit bist)
 
-1. `assets/generator.js` → `generateCopy()` durch einen Aufruf an eine Serverless-Funktion ersetzen, die die Claude API nutzt (API-Schlüssel **nie** ins Frontend!).
+1. ✅ KI-Texte über die Claude API (erledigt).
 2. Foto-Upload im Builder (Logo + 3–6 Bilder) für deutlich bessere Websites.
 3. Impressum- und Datenschutz-Seiten automatisch mit den Kundendaten erzeugen.
 4. „Änderungen per Chat“: Textfeld unter der Vorschau → KI ändert das HTML.

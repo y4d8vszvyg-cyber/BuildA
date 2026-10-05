@@ -1,8 +1,8 @@
 /* BuildA – Website-Generator
  * Erzeugt aus den Wizard-Antworten eine komplette, responsive One-Page-Website
  * (Startseite, Über uns, Leistungen, Preise, FAQ, Kontakt, SEO, CTA).
- * Läuft komplett im Browser. Später kann `generateCopy` durch einen KI-Aufruf
- * (z. B. Claude API über eine Serverless-Funktion) ersetzt werden.
+ * Läuft im Browser. Die Texte kommen von der Claude API (`/api/generate`, siehe api/copy.mjs);
+ * ist die KI nicht erreichbar, nutzt `generateCopy` die eingebauten Branchen-Vorlagen.
  */
 (function (global) {
   "use strict";
@@ -221,12 +221,40 @@
       seoTitle,
       seoDesc,
       keywords,
+      aboutTitle: `Mehr als nur ein ${ind.noun}`,
+    };
+  }
+
+  // Übernimmt KI-Texte (aus /api/generate) über die Vorlagentexte. Fehlende oder leere Felder bleiben aus der Vorlage.
+  function mergeCopy(base, ai) {
+    if (!ai || typeof ai !== "object") return base;
+    const str = (v, fb) => (typeof v === "string" && v.trim() ? v.trim() : fb);
+    const arr = (v, fb, ok) => (Array.isArray(v) && v.filter(ok).length ? v.filter(ok) : fb);
+    const isStr = (x) => typeof x === "string" && x.trim();
+    return {
+      ...base,
+      hero: str(ai.hero, base.hero),
+      tagline: str(ai.tagline, base.tagline),
+      cta: str(ai.cta, base.cta),
+      aboutTitle: str(ai.aboutTitle, base.aboutTitle),
+      about: arr(ai.about, base.about, isStr).slice(0, 3),
+      usp: arr(ai.usp, base.usp, isStr).concat(base.usp).slice(0, 3),
+      services: arr(ai.services, base.services, (x) => x && isStr(x.title) && isStr(x.text))
+        .slice(0, 8)
+        .map((x, i) => ({ title: x.title, text: x.text, icon: SERVICE_ICONS[i % SERVICE_ICONS.length] })),
+      prices: arr(ai.prices, base.prices, (x) => x && isStr(x.title) && isStr(x.price)).slice(0, 6),
+      faq: arr(ai.faq, base.faq.map(([q, a]) => ({ q, a })), (x) => x && isStr(x.q) && isStr(x.a))
+        .slice(0, 6)
+        .map((x) => (Array.isArray(x) ? x : [x.q, x.a])),
+      seoTitle: str(ai.seoTitle, base.seoTitle),
+      seoDesc: str(ai.seoDesc, base.seoDesc),
+      keywords: Array.isArray(ai.keywords) && ai.keywords.some(isStr) ? ai.keywords.filter(isStr).join(", ") : base.keywords,
     };
   }
 
   // ---------- HTML-Ausgabe ----------
-  function buildSite(d) {
-    const c = generateCopy(d);
+  function buildSite(d, ai) {
+    const c = mergeCopy(generateCopy(d), ai);
     const s = STYLES[d.style] || STYLES.modern;
     const dark = d.style === "bold";
     const btnText = dark ? "#0b0b0f" : "#ffffff";
@@ -283,7 +311,8 @@ nav{display:flex;align-items:center;justify-content:space-between;height:68px}
 .logo{font-family:${s.head};font-weight:800;font-size:1.25rem;text-decoration:none}
 .logo span{color:var(--a)}
 .links{display:flex;gap:26px;list-style:none}
-.links a{text-decoration:none;font-weight:500;opacity:.8}
+.links a{text-decoration:none;font-weight:500;opacity:.8;white-space:nowrap}
+.logo,.navcta{white-space:nowrap}
 .links a:hover{opacity:1;color:var(--a)}
 .btn{display:inline-block;background:var(--p);color:var(--btn);padding:14px 26px;border-radius:var(--r);text-decoration:none;font-weight:700;border:2px solid var(--p);transition:transform .15s,box-shadow .15s;cursor:pointer;font-size:1rem}
 .btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px -10px var(--p)}
@@ -335,7 +364,8 @@ footer a{margin:0 8px}
 .fab{position:fixed;right:18px;bottom:18px;background:var(--a);color:#fff;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-size:1.5rem;text-decoration:none;box-shadow:0 10px 30px -8px var(--a);z-index:20}
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s,transform .7s}
 .reveal.in{opacity:1;transform:none}
-@media(max-width:800px){.links{display:none}.navcta{display:none}.about,.contact{grid-template-columns:1fr}.hero{padding:70px 0 60px}section{padding:64px 0}}
+@media(max-width:1000px){.navcta{display:none}}
+@media(max-width:800px){.links{display:none}.about,.contact{grid-template-columns:1fr}.hero{padding:70px 0 60px}section{padding:64px 0}}
 </style>
 </head>
 <body>
@@ -355,7 +385,7 @@ footer a{margin:0 8px}
 </div></section>
 
 <section id="ueber-uns" class="alt reveal"><div class="wrap about">
-<div><p class="eyebrow">Über uns</p><h2>Mehr als nur ein ${esc(c.ind.noun)}</h2>${c.about.map((p) => `<p>${esc(p)}</p>`).join("")}</div>
+<div><p class="eyebrow">Über uns</p><h2>${esc(c.aboutTitle)}</h2>${c.about.map((p) => `<p>${esc(p)}</p>`).join("")}</div>
 <ul class="usps">${c.usp.map((u) => `<li>✓ ${esc(u)}</li>`).join("")}</ul>
 </div></section>
 
@@ -408,5 +438,5 @@ document.querySelectorAll(".reveal").forEach(el=>io.observe(el));
 </html>`;
   }
 
-  global.BuildA = { INDUSTRIES, STYLES, buildSite, generateCopy, slug };
+  global.BuildA = { INDUSTRIES, STYLES, buildSite, generateCopy, mergeCopy, slug };
 })(window);

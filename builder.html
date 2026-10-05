@@ -86,7 +86,7 @@
 
   <div class="result" id="result">
     <div class="rtop">
-      <h2>🎉 Deine Website ist fertig!</h2>
+      <div><h2>🎉 Deine Website ist fertig!</h2><span id="aiBadge" class="aibadge"></span></div>
       <div class="devices">
         <button class="on" data-d="desktop">🖥 Desktop</button>
         <button data-d="tablet">Tablet</button>
@@ -110,6 +110,7 @@
         <div class="card">
           <h4>✏️ Anpassen</h4>
           <p style="color:var(--mute);font-size:.9rem">Anderer Stil? Andere Texte? Einfach neu generieren.</p>
+          <button class="btn ghost" id="rewrite">✍️ Texte neu schreiben</button>
           <button class="btn ghost" id="restyle">🎨 Stil wechseln</button>
           <button class="btn ghost" id="edit">← Antworten ändern</button>
         </div>
@@ -241,21 +242,60 @@
   }
 
   let html = "";
+  let aiCopy = null; // Texte von der Claude API; null = Vorlagentexte
+
+  async function fetchCopy() {
+    try {
+      const res = await fetch("api/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(collect()),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok || !out.copy) throw new Error(out.error || "HTTP " + res.status);
+      return out.copy;
+    } catch (err) {
+      console.warn("KI nicht verfügbar, nutze Vorlagen:", err.message);
+      return null;
+    }
+  }
+
+  function render() {
+    html = buildSite(collect(), aiCopy);
+    $("#preview").srcdoc = html;
+    $("#aiBadge").textContent = aiCopy ? "✨ Texte von KI geschrieben" : "📝 Vorlagentexte (KI gerade nicht erreichbar)";
+    $("#aiBadge").className = "aibadge" + (aiCopy ? " on" : "");
+  }
+
   async function generate() {
     $("#wizard").style.display = "none";
     $("#result").classList.remove("on");
     $("#loader").classList.add("on");
     const lines = $$(".loglines li");
     lines.forEach((l) => l.classList.remove("show"));
-    for (const l of lines) { await new Promise((r) => setTimeout(r, 480)); l.classList.add("show"); }
-    html = buildSite(collect());
-    $("#preview").srcdoc = html;
+    const copyPromise = fetchCopy();
+    // Animation läuft parallel zur KI; die letzte Zeile erscheint erst, wenn die Texte da sind.
+    for (const l of lines.slice(0, -1)) { await new Promise((r) => setTimeout(r, 650)); l.classList.add("show"); }
+    aiCopy = await copyPromise;
+    lines[lines.length - 1].classList.add("show");
+    render();
     await new Promise((r) => setTimeout(r, 400));
     $("#loader").classList.remove("on");
     $("#result").classList.add("on");
     window.scrollTo({ top: 0 });
     // Analytics-Hook: hier "website_generated" an dein Tracking senden
   }
+
+  $("#rewrite").addEventListener("click", async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    btn.textContent = "⏳ KI schreibt …";
+    const copy = await fetchCopy();
+    btn.disabled = false;
+    btn.textContent = "✍️ Texte neu schreiben";
+    if (copy) { aiCopy = copy; render(); toast("Neue Texte sind da ✨"); }
+    else toast("KI gerade nicht erreichbar 😕");
+  });
 
   // Geräte-Vorschau
   $$(".devices button").forEach((b) => b.addEventListener("click", () => {
@@ -267,8 +307,7 @@
     const keys = Object.keys(STYLES);
     data.style = keys[(keys.indexOf(data.style) + 1) % keys.length];
     toast("Neuer Stil: " + STYLES[data.style].label);
-    html = buildSite(collect());
-    $("#preview").srcdoc = html;
+    render();
   });
   $("#edit").addEventListener("click", () => {
     $("#result").classList.remove("on");
