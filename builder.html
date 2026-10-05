@@ -57,6 +57,16 @@
     <div class="step wide" data-name="Leistungen & Preise" data-required="services">
       <h2>Was bietest du an, und was kostet es? *</h2>
       <p class="hint">Trag deine echten Preise ein, z. B. „35 €“ oder „ab 35 €“. Lässt du das Preisfeld leer, erscheint die Leistung ohne Preis. Die Beschreibung ist optional, sonst schreibt die KI einen kurzen Satz.</p>
+      <div class="scanbox" id="scanBox">
+        <div>
+          <b>Preisliste oder Speisekarte abfotografieren</b>
+          <span>Die KI liest Leistungen und Preise vom Foto ab und trägt sie unten ein. Mehrere Seiten gehen auch.</span>
+        </div>
+        <label class="btn accent sm" id="scanBtn">
+          <input type="file" accept="image/*" id="scanInput" multiple hidden>
+          <span id="scanTxt">Foto aufnehmen</span>
+        </label>
+      </div>
       <div class="srow head"><span>Leistung</span><span>Preis</span><span>Kurze Beschreibung (optional)</span><span></span></div>
       <div id="serviceRows"></div>
       <div class="rowbtns">
@@ -280,6 +290,57 @@
     renderSuggest();
   });
   $("#addRow").addEventListener("click", () => addRow().querySelector("input").focus());
+
+  // Preisliste vom Foto lesen: Foto verkleinern → /api/scan-menu → Zeilen eintragen
+  $("#scanInput").addEventListener("change", async (e) => {
+    const files = [...e.target.files].slice(0, 5);
+    e.target.value = "";
+    if (!files.length) return;
+    $("#scanBox").classList.add("busy");
+    let added = 0, failed = "";
+    for (const [n, f] of files.entries()) {
+      $("#scanTxt").textContent = files.length > 1 ? `Lese Foto ${n + 1} von ${files.length} …` : "Wird gelesen …";
+      try {
+        const image = await shrink(f, 2400, "image/jpeg");
+        const res = await fetch("api/scan-menu", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ image }) });
+        const out = await res.json().catch(() => ({}));
+        if (res.status === 404 || res.status === 405 || res.status === 503) throw new Error("Der Foto-Scan ist gerade nicht verfügbar. Bitte trag die Preise von Hand ein.");
+        if (!res.ok) throw new Error(out.error || "Fehler " + res.status);
+        added += addScanned(out.items || []);
+      } catch (err) {
+        failed = err.message === "Failed to fetch" ? "Keine Verbindung zur KI." : err.message;
+      }
+    }
+    $("#scanBox").classList.remove("busy");
+    $("#scanTxt").textContent = "Foto aufnehmen";
+    renderSuggest();
+    if (added) toast(`${added} ${added === 1 ? "Eintrag" : "Einträge"} erkannt – bitte kurz prüfen`);
+    else toast(failed || "Auf dem Foto wurden keine Preise gefunden");
+  });
+  function addScanned(items) {
+    $$("#serviceRows .srow").forEach((r) => { if (![...r.querySelectorAll("input")].some((i) => i.value.trim())) r.remove(); });
+    const byTitle = new Map($$("#serviceRows .srow").map((r) => [r.querySelector("[data-f=title]").value.trim().toLowerCase(), r]));
+    let n = 0;
+    for (const it of items) {
+      if (!it.title) continue;
+      const row = byTitle.get(it.title.toLowerCase());
+      if (row) {
+        // Leistung gibt es schon: nur leere Felder ergänzen, Eingaben des Kunden nie überschreiben
+        const price = row.querySelector("[data-f=price]"), desc = row.querySelector("[data-f=desc]");
+        let changed = false;
+        if (!price.value.trim() && it.price) { price.value = it.price; changed = true; }
+        if (!desc.value.trim() && it.desc) { desc.value = it.desc; changed = true; }
+        if (changed) { row.classList.add("scanned"); n++; }
+        continue;
+      }
+      const r = addRow(it.title, it.price, it.desc);
+      r.classList.add("scanned");
+      byTitle.set(it.title.toLowerCase(), r);
+      n++;
+    }
+    if (!$$("#serviceRows .srow").length) addRow();
+    return n;
+  }
   addRow();
 
   // ----- Schritt 5: Zielgruppe & Ansprache -----

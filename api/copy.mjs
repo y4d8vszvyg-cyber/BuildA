@@ -5,7 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 
-const client = new Anthropic();
+export const client = new Anthropic();
 
 export const MODEL = process.env.BUILDA_MODEL || "claude-opus-5-5";
 

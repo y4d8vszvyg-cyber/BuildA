@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { handleGenerate } from "./api/copy.mjs";
+import { handleScan } from "./api/menu.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3000);
@@ -39,6 +40,18 @@ http
         return send(res, 400, { error: "Ungültige Anfrage" });
       }
       const [status, out] = await handleGenerate(body, req.socket.remoteAddress || "?");
+      return send(res, status, out);
+    }
+
+    if (url.pathname === "/api/scan-menu") {
+      if (req.method !== "POST") return send(res, 405, { error: "Nur POST" });
+      let body;
+      try {
+        body = await readJson(req, 8_000_000);
+      } catch {
+        return send(res, 400, { error: "Ungültige Anfrage oder Foto zu groß" });
+      }
+      const [status, out] = await handleScan(body, req.socket.remoteAddress || "?");
       return send(res, status, out);
     }
 

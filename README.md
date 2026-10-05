@@ -7,8 +7,9 @@ KI-Website-Generator für lokale Unternehmen: 6 Fragen beantworten → fertige, 
 - `assets/generator.js` – baut die Kunden-Website (Design, SEO, Schema.org) aus den KI-Texten
 - `assets/config.js` – **hier deine Stripe-Zahlungslinks eintragen**
 - `api/copy.mjs` – KI-Texte über die Claude API (strukturierte Ausgabe, Rate-Limit, Fehlerbehandlung)
+- `api/menu.mjs` – liest Preislisten und Speisekarten vom Foto ab (`POST /api/scan-menu`)
 - `server.mjs` – lokaler Server bzw. für einen eigenen Server/VPS
-- `netlify/functions/generate.mjs` – dieselbe API als Netlify-Funktion
+- `netlify/functions/` – beide APIs als Netlify-Funktionen
 - `GESCHAEFTSPLAN.md` – Schritt für Schritt: So verdienst du damit Geld
 
 ## Bezahlung einrichten
@@ -39,7 +40,7 @@ Ohne Schlüssel läuft alles trotzdem: Der Builder nutzt dann die eingebauten Br
 |---|---|---|
 | `ANTHROPIC_API_KEY` | – | API-Schlüssel (Pflicht für KI-Texte) |
 | `BUILDA_MODEL` | `claude-opus-5-5` | Claude-Modell |
-| `BUILDA_RATE_LIMIT` | `10` | max. Generierungen pro IP und Stunde |
+| `BUILDA_RATE_LIMIT` | `10` | max. Generierungen bzw. Foto-Scans pro IP und Stunde |
 | `PORT` | `3000` | Port für `server.mjs` |
 
-**Kosten:** Eine Website verbraucht ca. 1.000 Eingabe- und 2.000–4.000 Ausgabe-Tokens, also grob 5–10 Cent mit Claude Opus 5.5. Setz dir in der Anthropic Console ein monatliches Ausgabenlimit. Das Rate-Limit liegt im Arbeitsspeicher und gilt bei Netlify nur pro Funktionsinstanz, ist also ein Grundschutz und keine harte Grenze.
+**Kosten:** Ein Foto-Scan einer Preisliste kostet je nach Länge grob 2–5 Cent. Eine Website verbraucht ca. 1.000 Eingabe- und 2.000–4.000 Ausgabe-Tokens, also grob 5–10 Cent mit Claude Opus 5.5. Setz dir in der Anthropic Console ein monatliches Ausgabenlimit. Das Rate-Limit liegt im Arbeitsspeicher und gilt bei Netlify nur pro Funktionsinstanz, ist also ein Grundschutz und keine harte Grenze.
