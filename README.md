@@ -11,6 +11,9 @@ KI-Website-Generator für lokale Unternehmen: 6 Fragen beantworten → fertige, 
 - `server.mjs` – lokaler Server bzw. für einen eigenen Server/VPS
 - `netlify/functions/` – beide APIs als Netlify-Funktionen
 - `GESCHAEFTSPLAN.md` – Schritt für Schritt: So verdienst du damit Geld
+- `marketing/` – Postkarten-Aktion: Werkzeug (`postkarten.html`), Anleitung, Kundenliste, Beispiel-PDF
+- `vorschau/` – Entwurfs-Websites für die Postkarten (nach 30 Tagen löschen)
+- `assets/vendor/qrcode.js` – QR-Code-Bibliothek (MIT, Kazuhiko Arase)
 
 ## Bezahlung einrichten
 

@@ -56,8 +56,13 @@ http
     }
 
     const file = url.pathname === "/" ? "/index.html" : url.pathname;
-    if (req.method !== "GET" || !PUBLIC.has(file)) return send(res, 404, "Nicht gefunden", "text/plain; charset=utf-8");
-    send(res, 200, await readFile(path.join(ROOT, file)), TYPES[path.extname(file)]);
+    const allowed = PUBLIC.has(file) || /^\/vorschau\/[a-z0-9-]+\.html$/.test(file) || file === "/marketing/postkarten.html" || file === "/assets/vendor/qrcode.js";
+    if (req.method !== "GET" || !allowed) return send(res, 404, "Nicht gefunden", "text/plain; charset=utf-8");
+    try {
+      send(res, 200, await readFile(path.join(ROOT, file)), TYPES[path.extname(file)]);
+    } catch {
+      send(res, 404, "Nicht gefunden", "text/plain; charset=utf-8");
+    }
   })
   .listen(PORT, () => {
     const ai = process.env.ANTHROPIC_API_KEY ? "KI aktiv" : "ohne KI (ANTHROPIC_API_KEY fehlt → Vorlagentexte)";

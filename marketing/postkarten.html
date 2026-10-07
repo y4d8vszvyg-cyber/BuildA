@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Postkarten – BuildA</title>
+<style>
+:root { --bg:#faf8f5; --card:#fff; --line:#e3ddd3; --text:#1c1917; --mute:#6b645b; --accent:#c2410c; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); line-height:1.5; }
+.app { display:grid; grid-template-columns: 430px 1fr; min-height:100vh; }
+.panel { background:var(--card); border-right:1px solid var(--line); padding:24px; overflow:auto; max-height:100vh; position:sticky; top:0; }
+.panel h1 { font-size:1.3rem; margin-bottom:4px; }
+.panel h2 { font-size:.95rem; margin:24px 0 8px; }
+.mute { color:var(--mute); font-size:.88rem; }
+label { display:block; font-size:.82rem; font-weight:600; margin:10px 0 4px; }
+input, textarea, select { width:100%; font:inherit; font-size:.92rem; padding:8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--text); }
+textarea { resize:vertical; }
+.row2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.btn { display:inline-block; font:inherit; font-weight:600; font-size:.92rem; padding:9px 14px; border-radius:8px; border:1px solid var(--text); background:var(--text); color:#fff; cursor:pointer; }
+.btn.ghost { background:transparent; color:var(--text); border-color:var(--line); }
+.btns { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+table { width:100%; border-collapse:collapse; font-size:.85rem; margin-top:8px; }
+th { text-align:left; color:var(--mute); font-weight:600; font-size:.75rem; padding:4px; }
+td { padding:3px 2px; vertical-align:top; }
+td input, td textarea { padding:6px 7px; font-size:.84rem; }
+td textarea { min-height:52px; }
+td .x { background:none; border:1px solid var(--line); border-radius:6px; width:28px; height:30px; cursor:pointer; color:var(--mute); }
+.note { background:#fff7ed; border:1px solid #fed7aa; border-radius:10px; padding:12px 14px; font-size:.84rem; margin-top:16px; }
+.main { padding:28px; }
+.main h2 { font-size:1rem; margin-bottom:12px; }
+.sheet-preview { display:flex; flex-wrap:wrap; gap:18px; }
+.pair { display:flex; flex-wrap:wrap; gap:12px; }
+
+/* ---------- Postkarte (148 × 105 mm) ---------- */
+.card { width:148mm; height:105mm; background:#fff; position:relative; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.12); color:#1c1917; }
+.front { padding:11mm 12mm; display:grid; grid-template-columns:1fr 38mm; gap:8mm; align-items:center; background:#f6f1ea; }
+.front .kicker { font:600 7.5pt/1.3 system-ui, sans-serif; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:4mm; }
+.front h3 { font:700 21pt/1.12 Georgia, "Times New Roman", serif; margin-bottom:4mm; }
+.front p { font:10pt/1.45 system-ui, sans-serif; color:#44403c; }
+.front .qr { background:#fff; padding:3mm; border-radius:2mm; text-align:center; }
+.front .qr svg { width:100%; height:auto; display:block; }
+.front .qr small { display:block; font:600 7pt/1.3 system-ui, sans-serif; margin-top:2mm; }
+.front .brand { position:absolute; left:12mm; bottom:7mm; font:700 8pt system-ui, sans-serif; color:#78716c; }
+.back { padding:7mm 8mm; display:grid; grid-template-columns:1fr 1px 50mm; gap:5mm; }
+.back .msg { font:7.9pt/1.42 system-ui, sans-serif; display:flex; flex-direction:column; min-height:0; }
+.back .msg p + p { margin-top:1.8mm; }
+.back .msg .sig { margin-top:auto; padding-top:1.5mm; }
+.back .msg .small { font-size:5.4pt; line-height:1.3; color:#78716c; margin-top:1.5mm; }
+.back .divider { background:#d6d3d1; }
+.back .right { display:flex; flex-direction:column; }
+.back .stamp { align-self:flex-end; width:20mm; height:23mm; border:.3mm dashed #a8a29e; display:grid; place-items:center; font:7pt system-ui, sans-serif; color:#a8a29e; text-align:center; }
+.back .link { margin-top:4mm; font:6.3pt/1.35 system-ui, sans-serif; color:#57534e; word-break:break-all; }
+.back .addr { margin-top:auto; font:9pt/1.4 system-ui, sans-serif; border-top:.3mm solid #d6d3d1; padding-top:2.5mm; white-space:pre-line; }
+.back .addr .sender { font-size:5.8pt; color:#78716c; border-bottom:.2mm solid #d6d3d1; padding-bottom:1mm; margin-bottom:2mm; white-space:normal; }
+
+.print { display:none; }
+@media (max-width: 1100px) { .app { grid-template-columns:1fr; } .panel { position:static; max-height:none; border-right:0; border-bottom:1px solid var(--line); } }
+
+@media print {
+  body { background:#fff; }
+  .app { display:none; }
+  .print { display:block; }
+  .card { box-shadow:none; }
+  .print.a6 .card { break-after:page; }
+  .print.a4 .sheet { width:297mm; height:210mm; display:grid; grid-template-columns:148mm 148mm; grid-template-rows:105mm 105mm; justify-content:center; break-after:page; }
+  .print.a4 .card { outline:.1mm dashed #ccc; }
+}
+</style>
+<style id="pagesize">@page { size: 148mm 105mm; margin: 0; }</style>
+</head>
+<body>
+<div class="app">
+  <aside class="panel">
+    <h1>Postkarten-Aktion</h1>
+    <p class="mute">„Ihre Website ist schon fertig“ – eine Karte pro Betrieb, mit QR-Code zur Entwurfs-Website. Alles bleibt in deinem Browser.</p>
+
+    <h2>1. Dein Absender (Pflicht bei Werbung)</h2>
+    <div class="row2">
+      <div><label>Dein Name</label><input id="sName" placeholder="Max Mustermann"></div>
+      <div><label>Firmenname</label><input id="sBrand" placeholder="BuildA"></div>
+    </div>
+    <label>Anschrift</label><input id="sAddr" placeholder="Musterstraße 1, 80331 München">
+    <div class="row2">
+      <div><label>Telefon / WhatsApp</label><input id="sPhone" placeholder="0171 1234567"></div>
+      <div><label>E-Mail</label><input id="sMail" placeholder="hallo@builda.de"></div>
+    </div>
+    <label>Adresse deiner Website (für die QR-Codes)</label><input id="sBase" placeholder="https://builda.netlify.app">
+    <label>Link zu deiner Datenschutzerklärung</label><input id="sPrivacy" placeholder="builda.de/datenschutz">
+
+    <h2>2. Betriebe</h2>
+    <p class="mute">Die Vorschau-Datei heißt wie der Firmenname, z. B. <code>vorschau/hair-studio-muenchen.html</code> – genau so speichert sie der Builder („Als Entwurf für Postkarte“).</p>
+    <table>
+      <thead><tr><th>Firmenname</th><th>Branche · Stadt</th><th>Empfänger-Adresse</th><th></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="btns">
+      <button class="btn ghost" id="addRow">+ Betrieb</button>
+      <button class="btn ghost" id="importCsv">Liste einfügen (CSV)</button>
+      <button class="btn ghost" id="example">Beispiel laden</button>
+    </div>
+
+    <h2>3. Texte</h2>
+    <p class="mute">Platzhalter: {name}, {branche}, {stadt}, {preis}, {abo}, {absender}, {kontakt}</p>
+    <label>Vorderseite – Überschrift</label><input id="tHead">
+    <label>Vorderseite – Text</label><textarea id="tFront" rows="2"></textarea>
+    <label>Rückseite – Nachricht (Leerzeile = neuer Absatz)</label><textarea id="tBack" rows="9"></textarea>
+    <div class="row2">
+      <div><label>Preis einmalig</label><input id="pOnce" value="49 €"></div>
+      <div><label>Preis monatlich</label><input id="pMonth" value="9,99 €"></div>
+    </div>
+    <button class="btn ghost" id="resetText" style="margin-top:10px">Standardtexte</button>
+
+    <h2>4. Drucken</h2>
+    <label>Format</label>
+    <select id="format">
+      <option value="a6">Postkarte A6 (für Online-Druckerei, je Karte 2 Seiten)</option>
+      <option value="a4">4 Karten pro A4-Blatt (eigener Drucker, dann schneiden)</option>
+    </select>
+    <div class="btns"><button class="btn" id="print">Drucken / als PDF speichern</button></div>
+    <div class="note">
+      <b>Vor dem Versand prüfen:</b> Jeder QR-Code muss eine Entwurfs-Website öffnen. Scanne ein paar Karten mit dem Handy, bevor du druckst. Betriebe mit „Keine Werbung“ oder die widersprochen haben, nicht anschreiben.
+    </div>
+  </aside>
+
+  <main class="main">
+    <h2 id="countTxt">Vorschau</h2>
+    <div class="sheet-preview" id="preview"></div>
+  </main>
+</div>
+<div class="print a6" id="printArea"></div>
+
+<script src="../assets/vendor/qrcode.js"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  // gleiche Regel wie im Builder (generator.js → slug)
+  const slug = (s) => String(s || "website").toLowerCase()
+    .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "website";
+
+  const DEFAULTS = {
+    tHead: "{name}, Ihre neue Website ist schon fertig.",
+    tFront: "Wir haben einen Entwurf für Sie gebaut. Einfach scannen und ansehen – unverbindlich.",
+    tBack:
+      "Guten Tag,\n\nviele Kunden suchen {branche} in {stadt} zuerst im Internet. Deshalb haben wir für {name} einen unverbindlichen Website-Entwurf gebaut – mit Leistungen, Kontakt und Anfahrt.\n\nGefällt er Ihnen, ist er in 24 Stunden unter Ihrer eigenen Adresse online: einmalig {preis}, danach {abo} im Monat, monatlich kündbar.\n\nWenn nicht, müssen Sie nichts tun – der Entwurf wird nach 30 Tagen gelöscht.",
+  };
+  const FIELDS = ["sName", "sBrand", "sAddr", "sPhone", "sMail", "sBase", "sPrivacy", "tHead", "tFront", "tBack", "pOnce", "pMonth", "format"];
+
+  // ----- Speichern im Browser (nur Komfort, darf fehlschlagen) -----
+  const KEY = "builda-postkarten";
+  function load() { try { return JSON.parse(localStorage.getItem(KEY) || "null"); } catch { return null; } }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ fields: Object.fromEntries(FIELDS.map((f) => [f, $("#" + f).value])), rows: rows() })); } catch {}
+  }
+
+  // ----- Betriebe -----
+  function addRow(r = {}) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><input data-f="name" placeholder="Hair Studio München" value="${esc(r.name)}"></td>
+      <td><input data-f="branche" placeholder="Friseur" value="${esc(r.branche)}" style="margin-bottom:3px"><input data-f="stadt" placeholder="München" value="${esc(r.stadt)}"></td>
+      <td><textarea data-f="adresse" placeholder="Hair Studio München&#10;Leopoldstr. 12&#10;80802 München">${esc(r.adresse)}</textarea></td>
+      <td><button class="x" title="Entfernen">×</button></td>`;
+    tr.querySelector(".x").addEventListener("click", () => { tr.remove(); render(); });
+    $("#rows").appendChild(tr);
+  }
+  function rows() {
+    return [...document.querySelectorAll("#rows tr")].map((tr) => Object.fromEntries([...tr.querySelectorAll("[data-f]")].map((i) => [i.dataset.f, i.value.trim()])));
+  }
+
+  // ----- Karten bauen -----
+  function qrSvg(text) {
+    const qr = qrcode(0, "M");
+    qr.addData(text);
+    qr.make();
+    return qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true, alt: "QR-Code" });
+  }
+  function fill(tpl, r, v) {
+    // erst escapen, dann Platzhalter einsetzen (die Werte werden ebenfalls escaped)
+    const map = { name: r.name, branche: r.branche, stadt: r.stadt, preis: v.pOnce, abo: v.pMonth, absender: v.sBrand || v.sName, kontakt: v.sPhone || v.sMail };
+    return esc(tpl).replace(/\{(\w+)\}/g, (m, k) => (k in map ? esc(map[k] || "") : m));
+  }
+  function cards(r, v) {
+    const base = (v.sBase || "https://deine-seite.netlify.app").replace(/\/+$/, "");
+    const url = `${base}/vorschau/${slug(r.name)}.html`;
+    const shortUrl = url.replace(/^https?:\/\//, "");
+    const qr = qrSvg(url);
+    const paras = fill(v.tBack, r, v).split(/\n\s*\n/).map((p) => `<p>${p.replace(/\n/g, "<br>")}</p>`).join("");
+    const contact = [v.sPhone, v.sMail].filter(Boolean).map(esc).join(" · ");
+    const sender = [v.sBrand, v.sName, v.sAddr].filter(Boolean).map(esc).join(" · ");
+    const optout = `Ihre Adresse stammt aus öffentlichen Verzeichnissen (z. B. Google Maps). Keine Post mehr gewünscht? Kurze Nachricht genügt.${v.sPrivacy ? " Datenschutz: " + esc(v.sPrivacy) : ""}`;
+    const front = `<div class="card front">
+      <div>
+        <div class="kicker">${esc([r.branche, r.stadt].filter(Boolean).join(" · ")) || "Website-Entwurf"}</div>
+        <h3>${fill(v.tHead, r, v)}</h3>
+        <p>${fill(v.tFront, r, v)}</p>
+      </div>
+      <div class="qr">${qr}<small>Scannen &amp; ansehen</small></div>
+      <div class="brand">${esc(v.sBrand || "BuildA")}</div>
+    </div>`;
+    const back = `<div class="card back">
+      <div class="msg">${paras}
+        <div class="sig">Viele Grüße<br><b>${esc(v.sName || v.sBrand || "")}</b>${contact ? "<br>" + contact : ""}</div>
+        <div class="small">${optout}</div>
+      </div>
+      <div class="divider"></div>
+      <div class="right">
+        <div class="stamp">Porto</div>
+        <div class="link">Ihr Entwurf:<br>${esc(shortUrl)}</div>
+        <div class="addr">${sender ? `<div class="sender">${sender}</div>` : ""}${esc(r.adresse || r.name)}</div>
+      </div>
+    </div>`;
+    return { front, back, url };
+  }
+
+  function values() { return Object.fromEntries(FIELDS.map((f) => [f, $("#" + f).value.trim()])); }
+
+  function render() {
+    const v = values();
+    const list = rows().filter((r) => r.name);
+    const built = list.map((r) => cards(r, v));
+    $("#countTxt").textContent = list.length ? `${list.length} ${list.length === 1 ? "Karte" : "Karten"} · Vorder- und Rückseite` : "Trag links mindestens einen Betrieb ein";
+    $("#preview").innerHTML = built.map((c) => `<div class="pair">${c.front}${c.back}</div>`).join("");
+
+    // Druckansicht
+    const area = $("#printArea");
+    area.className = "print " + v.format;
+    $("#pagesize").textContent = v.format === "a4" ? "@page { size: 297mm 210mm; margin: 0; }" : "@page { size: 148mm 105mm; margin: 0; }";
+    if (v.format === "a4") {
+      // 4 Karten pro Blatt: erst Vorderseiten, dann Rückseiten mit gespiegelten Spalten (beidseitig, an der kurzen Kante wenden)
+      let html = "";
+      for (let i = 0; i < built.length; i += 4) {
+        const chunk = built.slice(i, i + 4);
+        while (chunk.length < 4) chunk.push({ front: '<div class="card"></div>', back: '<div class="card"></div>' });
+        html += `<div class="sheet">${chunk.map((c) => c.front).join("")}</div>`;
+        html += `<div class="sheet">${[1, 0, 3, 2].map((n) => chunk[n].back).join("")}</div>`;
+      }
+      area.innerHTML = html;
+    } else {
+      area.innerHTML = built.map((c) => c.front + c.back).join("");
+    }
+    save();
+  }
+
+  // ----- Start -----
+  const saved = load();
+  for (const f of FIELDS) {
+    const el = $("#" + f);
+    if (saved && saved.fields && saved.fields[f] != null && saved.fields[f] !== "") el.value = saved.fields[f];
+    else if (DEFAULTS[f]) el.value = DEFAULTS[f];
+  }
+  (saved && saved.rows && saved.rows.length ? saved.rows : [{}]).forEach(addRow);
+
+  document.addEventListener("input", (e) => { if (e.target.closest(".panel")) render(); });
+  $("#format").addEventListener("change", render);
+  $("#addRow").addEventListener("click", () => { addRow(); render(); });
+  $("#resetText").addEventListener("click", () => { for (const k in DEFAULTS) $("#" + k).value = DEFAULTS[k]; render(); });
+  $("#example").addEventListener("click", () => {
+    $("#rows").innerHTML = "";
+    addRow({ name: "Hair Studio München", branche: "Friseur", stadt: "München", adresse: "Hair Studio München\nLeopoldstraße 12\n80802 München" });
+    addRow({ name: "Autoservice Brandl", branche: "Kfz-Werkstatt", stadt: "Augsburg", adresse: "Autoservice Brandl\nHaunstetter Str. 40\n86161 Augsburg" });
+    render();
+  });
+  $("#importCsv").addEventListener("click", () => {
+    const txt = prompt("Eine Zeile pro Betrieb, getrennt mit Semikolon:\nFirmenname; Branche; Stadt; Straße; PLZ Ort\n\nz. B.\nHair Studio München; Friseur; München; Leopoldstraße 12; 80802 München");
+    if (!txt) return;
+    const lines = txt.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (rows().every((r) => !r.name)) $("#rows").innerHTML = "";
+    for (const l of lines) {
+      const [name, branche, stadt, strasse, ort] = l.split(/;|\t/).map((x) => (x || "").trim());
+      if (!name || /^firmenname$/i.test(name)) continue;
+      addRow({ name, branche, stadt, adresse: [name, strasse, ort].filter(Boolean).join("\n") });
+    }
+    render();
+  });
+  $("#print").addEventListener("click", () => {
+    if (!rows().some((r) => r.name)) { alert("Bitte zuerst mindestens einen Betrieb eintragen."); return; }
+    if (!values().sBase) { alert("Bitte die Adresse deiner Website eintragen – sonst führen die QR-Codes ins Leere."); return; }
+    if (!values().sName && !values().sBrand) { alert("Bitte deinen Namen oder Firmennamen als Absender eintragen."); return; }
+    window.print();
+  });
+  render();
+})();
+</script>
+</body>
+</html>

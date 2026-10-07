@@ -8,7 +8,10 @@ window.BUILDA_CONFIG = {
     pro: "",      // z. B. "https://buy.stripe.com/def456"  (19,99 €/Monat)
     business: "", // z. B. "https://buy.stripe.com/ghi789"  (49 €/Monat)
   },
-  // Kontakt für Rückfragen nach dem Kauf (wird im Builder angezeigt)
+  // Dein Firmenname (erscheint z. B. im Entwurfs-Hinweis der Vorschau-Websites)
+  brandName: "BuildA",
+  // Kontakt für Rückfragen – wird im Entwurfs-Hinweis als „Entwurf übernehmen“ verlinkt
   supportEmail: "",
-  supportWhatsApp: "",
+  supportWhatsApp: "", // z. B. "0171 1234567"
+  previewContact: "",  // optional eigener Link, z. B. "https://deine-seite.de/builder.html"
 };

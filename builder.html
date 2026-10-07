@@ -191,6 +191,7 @@
           <h4>HTML herunterladen</h4>
           <p class="muted">Deine Website als Datei zum Selbst-Hosten.</p>
           <button class="btn ghost" id="download">Download (.html)</button>
+          <button class="btn ghost" id="downloadPreview" title="Mit Hinweis „Unverbindlicher Entwurf“ und für Google unsichtbar">Als Entwurf für Postkarte</button>
         </div>
       </aside>
     </div>
@@ -542,12 +543,21 @@
   $("#toPrices").addEventListener("click", () => jump("Leistungen & Preise"));
   $("#toPhotos").addEventListener("click", () => jump("Fotos"));
   $("#edit").addEventListener("click", () => jump("Branche"));
-  $("#download").addEventListener("click", () => {
+  function saveFile(content, name) {
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-    a.download = slug(collect().name) + ".html";
+    a.href = URL.createObjectURL(new Blob([content], { type: "text/html" }));
+    a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  $("#download").addEventListener("click", () => saveFile(html, slug(collect().name) + ".html"));
+  // Entwurf für die Postkarten-Aktion: kommt in den Ordner vorschau/ und ist unter /vorschau/<name>.html erreichbar
+  $("#downloadPreview").addEventListener("click", () => {
+    const wa = CONFIG.supportWhatsApp ? "https://wa.me/" + String(CONFIG.supportWhatsApp).replace(/\D/g, "").replace(/^0/, "49") : "";
+    const contact = CONFIG.previewContact || wa || (CONFIG.supportEmail ? "mailto:" + CONFIG.supportEmail : "");
+    const preview = buildSite({ ...collect(), preview: { by: CONFIG.brandName || "BuildA", contact } }, aiCopy);
+    saveFile(preview, slug(collect().name) + ".html");
+    toast("Datei in den Ordner vorschau/ legen und pushen");
   });
 
   // ----- Tarif & Bezahlung -----

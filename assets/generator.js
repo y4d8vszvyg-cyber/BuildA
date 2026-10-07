@@ -19,6 +19,7 @@
     String(s || "website")
       .toLowerCase()
       .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss")
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "") || "website";
 
@@ -484,6 +485,7 @@
 <meta property="og:description" content="${esc(c.seoDesc)}">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="${s.bg}">
+${d.preview ? '<meta name="robots" content="noindex, nofollow">' : ""}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=${s.font}&display=swap" rel="stylesheet">
 <script type="application/ld+json">${ld(jsonLd)}</script>
@@ -575,6 +577,8 @@ footer{padding:36px 0;border-top:1px solid var(--line);font-size:.9rem}
 footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;opacity:.75}
 footer a{margin-left:16px}
 .callbar{display:none}
+.preview-bar{background:#fef3c7;color:#78350f;font:500 14px/1.45 system-ui,sans-serif;padding:10px 22px;text-align:center}
+.preview-bar a{color:#78350f;font-weight:700;margin-left:6px}
 @media(max-width:860px){
   .links,.navcta{display:none}
   .split,.about,.contact{grid-template-columns:1fr}
@@ -593,6 +597,7 @@ footer a{margin-left:16px}
 </style>
 </head>
 <body>
+${d.preview ? `<div class="preview-bar">Unverbindlicher Entwurf, erstellt von ${esc(d.preview.by || "BuildA")} für ${esc(c.name)}. Dies ist nicht die offizielle Website des Unternehmens.${d.preview.contact ? ` <a href="${esc(d.preview.contact)}">Entwurf übernehmen</a>` : ""}</div>` : ""}
 <header><nav class="wrap">
 <a class="logo" href="#top">${brand}</a>
 <ul class="links">${navItems.map(([id, l]) => `<li><a href="#${id}">${l}</a></li>`).join("")}</ul>
