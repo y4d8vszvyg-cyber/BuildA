@@ -14,4 +14,10 @@ window.BUILDA_CONFIG = {
   supportEmail: "",
   supportWhatsApp: "", // z. B. "0171 1234567"
   previewContact: "",  // optional eigener Link, z. B. "https://deine-seite.de/builder.html"
+  // Zusatzfunktionen ein- und ausschalten
+  features: {
+    // 3D-Erlebnis (3D-Szene, die sich beim Scrollen bewegt). Vorerst ausgeschaltet –
+    // der Code bleibt komplett erhalten. Zum Einschalten einfach auf true setzen.
+    threeD: false,
+  },
 };
