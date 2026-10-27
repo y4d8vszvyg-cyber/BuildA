@@ -21,9 +21,11 @@ KI-Website-Generator für lokale Unternehmen: 6 Fragen beantworten → fertige, 
 - **Kontrast:** Akzentfarben, auch eine eigene Farbe des Kunden, werden automatisch so angepasst, dass Text mindestens 4,5:1 erreicht (WCAG AA).
 - **Mobil und barrierearm:** Menü auf dem Handy, sichtbarer Tastaturfokus, „Zum Inhalt springen“, Formular mit sichtbaren Feldbeschriftungen, Tippflächen ab 44 px, Rücksicht auf „Bewegung reduzieren“ und den unteren Bildschirmrand beim iPhone.
 
-## 3D-Erlebnis
+## 3D-Erlebnis (vorerst ausgeschaltet)
 
-Im Design-Schritt wählbar, sobald das Unternehmen ausführlich beschrieben ist (mindestens 400 Zeichen in „Wer seid ihr?“, „Was macht euch besonders?“ und „Ablauf“ zusammen; der Builder zeigt einen Zähler).
+**Schalter:** In `assets/config.js` steht `features: { threeD: false }`. Der Code ist vollständig vorhanden; mit `threeD: true` erscheint das 3D-Erlebnis wieder im Builder. Auf der Verkaufsseite (`index.html`) liegt die passende Feature-Karte auskommentiert bereit.
+
+Eingeschaltet ist es im Design-Schritt wählbar, sobald das Unternehmen ausführlich beschrieben ist (mindestens 400 Zeichen in „Wer seid ihr?“, „Was macht euch besonders?“ und „Ablauf“ zusammen; der Builder zeigt einen Zähler).
 
 - Eine 3D-Szene (Three.js, WebGL) in den Farben des Designs. Sie liegt hinter dem Startbereich und den Story-Kapiteln und bewegt sich beim Scrollen: Das Objekt wechselt die Seite, verformt sich und ordnet sich neu an.
 - Vier Motive: Fließende Form, Partikel, Geometrie, Ringe. Standard je nach Branche, z. B. Partikel für Restaurants und Ringe für Fitness.

@@ -489,6 +489,8 @@
     handwerk: "geometrie", kfz: "geometrie", beratung: "geometrie", kanzlei: "geometrie", immobilien: "geometrie", garten: "geometrie",
     fitness: "ringe", fotograf: "ringe", tattoo: "ringe", unterricht: "ringe",
   };
+  // Schalter in assets/config.js (features.threeD). Ausgeschaltet bleibt der Code erhalten, wird aber nicht genutzt.
+  const threeDEnabled = () => !!(global.BUILDA_CONFIG && global.BUILDA_CONFIG.features && global.BUILDA_CONFIG.features.threeD);
   // Three.js (UMD-Build) von jsDelivr, abgesichert per Subresource Integrity
   const THREE_SRC = "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js";
   const THREE_SRI = "sha384-vV17nr/rMaJqmeZkFUzXLpHdQ+ME5QHKdydaqqN+3Ga39RJlNrTatJxHwGV4ml2C";
@@ -959,8 +961,8 @@
     const photos = (d.photos || []).filter(isImg);
     const logo = isImg(d.logo) ? d.logo : "";
     const layout = LAYOUTS[d.layout] ? d.layout : "split";
-    // 3D nur mit ausführlicher Beschreibung – sonst fehlt der Stoff für die Story-Kapitel
-    const use3d = d.effect === "3d" && detailLength(d) >= DETAIL_MIN;
+    // 3D nur, wenn eingeschaltet (assets/config.js) und mit ausführlicher Beschreibung – sonst fehlt der Stoff für die Story-Kapitel
+    const use3d = threeDEnabled() && d.effect === "3d" && detailLength(d) >= DETAIL_MIN;
     const sceneKind = SCENES[d.scene] ? d.scene : DEFAULT_SCENE[d.industry] || "flow";
     const heroPhoto = use3d ? "" : photos[0] || "";
     // Im 3D-Modus ersetzt die Szene das Foto oben: erstes Foto zu „Über uns“, der Rest in die Galerie
@@ -1339,5 +1341,5 @@ ${phone || whatsapp || bookUrl ? `<div class="callbar">${bookUrl ? `<a href="${e
 </html>`;
   }
 
-  global.BuildA = { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, ACTIONS, SCENES, DETAIL_MIN, detailLength, defaultAction, safeUrl, resolveStyle, contrast, buildSite, generateCopy, mergeCopy, slug };
+  global.BuildA = { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, ACTIONS, SCENES, DETAIL_MIN, detailLength, threeDEnabled, defaultAction, safeUrl, resolveStyle, contrast, buildSite, generateCopy, mergeCopy, slug };
 })(window);
