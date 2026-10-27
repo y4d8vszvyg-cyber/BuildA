@@ -21,6 +21,15 @@ KI-Website-Generator für lokale Unternehmen: 6 Fragen beantworten → fertige, 
 - **Kontrast:** Akzentfarben, auch eine eigene Farbe des Kunden, werden automatisch so angepasst, dass Text mindestens 4,5:1 erreicht (WCAG AA).
 - **Mobil und barrierearm:** Menü auf dem Handy, sichtbarer Tastaturfokus, „Zum Inhalt springen“, Formular mit sichtbaren Feldbeschriftungen, Tippflächen ab 44 px, Rücksicht auf „Bewegung reduzieren“ und den unteren Bildschirmrand beim iPhone.
 
+## Buchen- und Kaufen-Buttons
+
+Im Schritt „Leistungen & Preise“ wählt der Kunde den Button, der bei jeder Leistung erscheint: Anfragen, Termin buchen, Reservieren, Kaufen oder Bestellen. Vorschlag je nach Branche, z. B. „Termin buchen“ für Friseure und „Reservieren“ für Restaurants.
+
+- **Mit Link** (Treatwell, Shore, Calendly, Doctolib, OpenTable, Stripe- oder PayPal-Zahlungslink): Alle Buttons öffnen diesen Link, auf dem Handy kommt er zusätzlich in die Leiste unten. Für Google wird er als Buchungs- bzw. Kaufaktion (Schema.org) hinterlegt.
+- **Ohne Link:** Der Button führt zum Kontaktformular, und die Leistung steht schon in der Nachricht, z. B. „Ich möchte einen Termin buchen: Haarschnitt“.
+
+Erlaubt sind nur http(s)-Links; „calendly.com/name“ wird automatisch zu „https://calendly.com/name“.
+
 ## Bezahlung einrichten
 
 1. In Stripe drei Zahlungslinks anlegen (Start, Pro, Business).

@@ -294,6 +294,32 @@
     photo: "Großes Foto im Hintergrund",
   };
 
+  // ---------- Buchen-/Kaufen-Button ----------
+  // cta: Text für den Hauptbutton, btn: Button bei jeder Leistung, ask: Anfang der vorausgefüllten Nachricht
+  const ACTIONS = {
+    anfrage: { label: "Anfragen", btn: "Anfragen", ask: "Anfrage zu: " },
+    termin: { label: "Termin buchen", btn: "Buchen", cta: "Termin buchen", ask: "Ich möchte einen Termin buchen: ", schema: "ReserveAction" },
+    reservieren: { label: "Reservieren", btn: "Reservieren", cta: "Tisch reservieren", ask: "Ich möchte reservieren: ", schema: "ReserveAction" },
+    kaufen: { label: "Kaufen", btn: "Kaufen", cta: "Jetzt kaufen", ask: "Ich möchte kaufen: ", schema: "BuyAction" },
+    bestellen: { label: "Bestellen", btn: "Bestellen", cta: "Jetzt bestellen", ask: "Ich möchte bestellen: ", schema: "OrderAction" },
+  };
+  const defaultAction = (industry) =>
+    ["friseur", "kosmetik", "kfz", "fitness", "fotograf", "praxis"].includes(industry) ? "termin" : industry === "restaurant" ? "reservieren" : "anfrage";
+
+  // Nur http(s)-Links mit echter Domain; "calendly.com/x" wird zu "https://calendly.com/x"
+  function safeUrl(u) {
+    let v = String(u || "").trim();
+    if (!v) return "";
+    if (/^[a-z][a-z0-9+.-]*:(?!\d)/i.test(v) && !/^https?:\/\//i.test(v)) return "";
+    if (!/^https?:\/\//i.test(v)) v = "https://" + v;
+    try {
+      const url = new URL(v);
+      return /^https?:$/.test(url.protocol) && !url.username && /\.[a-z]{2,}$/i.test(url.hostname) ? url.href : "";
+    } catch {
+      return "";
+    }
+  }
+
   const SECTIONS = {
     about: "Über uns",
     services: "Leistungen & Preise",
@@ -412,6 +438,7 @@
     clock: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
     insta: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>',
     menu: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
     mail: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>',
   };
 
@@ -463,7 +490,14 @@
     const hours = splitHours(d.hours);
     const fullAddress = [address, c.city].filter(Boolean).join(", ");
     const mapsHref = fullAddress ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(c.name + " " + fullAddress) : "";
-    const ctaHref = sec.contact ? "#kontakt" : phone ? telHref(phone) : email ? "mailto:" + email : "#";
+    const action = ACTIONS[d.action] ? d.action : defaultAction(d.industry);
+    const act = ACTIONS[action];
+    const bookUrl = safeUrl(d.bookingUrl);
+    const ext = bookUrl ? ' target="_blank" rel="noopener"' : "";
+    const ctaHref = bookUrl || (sec.contact ? "#kontakt" : phone ? telHref(phone) : email ? "mailto:" + email : "#");
+    // Eigene Wahl des Kunden schlägt den Branchen- bzw. KI-Text, die Standardaktion der Branche nicht
+    const ctaText = act.cta && action !== defaultAction(d.industry) ? act.cta : c.cta;
+    const pickHref = bookUrl || (sec.contact ? "#kontakt" : "");
 
     const showPrices = d.showPrices !== false && c.services.some((x) => x.price);
     const year = new Date().getFullYear();
@@ -487,6 +521,7 @@
       ...(c.city && { address: { "@type": "PostalAddress", ...(address && { streetAddress: address }), addressLocality: c.city, addressCountry: "DE" } }),
       ...(hours.length && { openingHours: hours.join(", ") }),
       ...(insta && { sameAs: [instaHref(insta)] }),
+      ...(bookUrl && act.schema && { potentialAction: { "@type": act.schema, target: bookUrl } }),
       ...(c.services.length && {
         makesOffer: c.services.map((x) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: x.title }, ...(showPrices && x.price && { description: x.price }) })),
       }),
@@ -507,7 +542,7 @@
 <p class="kicker">${esc(heroLine)}</p>
 <h1>${esc(c.hero)}</h1>
 <p class="lead">${esc(c.tagline)}</p>
-<div class="actions"><a class="btn" href="${ctaHref}">${esc(c.cta)}</a>${phone ? `<a class="btn ghost" href="${telHref(phone)}">${ICON.phone} ${esc(phone)}</a>` : ""}</div>`;
+<div class="actions"><a class="btn" href="${esc(ctaHref)}"${ext}>${esc(ctaText)}</a>${phone ? `<a class="btn ghost" href="${telHref(phone)}">${ICON.phone} ${esc(phone)}</a>` : ""}</div>`;
 
     let hero;
     if (layout === "photo" && heroPhoto) {
@@ -529,7 +564,7 @@
 
     const servicesHtml = c.services
       .map(
-        (x, i) => `<li><span class="num">${String(i + 1).padStart(2, "0")}</span><div><h3>${esc(x.title)}</h3>${x.text ? `<p>${esc(x.text)}</p>` : ""}</div>${showPrices ? `<span class="price">${esc(x.price)}</span>` : ""}</li>`
+        (x, i) => `<li><span class="num">${String(i + 1).padStart(2, "0")}</span><div><h3>${esc(x.title)}</h3>${x.text ? `<p>${esc(x.text)}</p>` : ""}</div>${showPrices || pickHref ? `<div class="buy">${showPrices ? `<span class="price">${esc(x.price)}</span>` : ""}${pickHref ? `<a class="btn ghost sm" href="${esc(pickHref)}"${ext} data-pick="${esc(x.title)}" aria-label="${esc(act.btn + ": " + x.title)}">${esc(act.btn)}</a>` : ""}</div>` : ""}</li>`
       )
       .join("");
 
@@ -614,6 +649,8 @@ h2{font-size:clamp(1.75rem,3.6vw,2.5rem);margin-bottom:20px}
 .services h3{font-size:1.15rem;margin-bottom:4px}
 .services p{color:var(--mute);font-size:.98rem}
 .services .price{font-weight:600;white-space:nowrap}
+.services .buy{display:flex;align-items:center;gap:16px;align-self:center}
+.btn.sm{padding:8px 16px;font-size:.92rem}
 .note{color:var(--mute);font-size:.88rem;margin-top:16px}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:32px}
 .gallery img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r)}
@@ -665,11 +702,12 @@ footer a{margin-left:16px}
   section.block{padding:64px 0}
   .services li{grid-template-columns:1fr auto}
   .services .num{display:none}
+  .services .buy{flex-direction:column;align-items:flex-end;gap:8px}
   .callbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:1px solid var(--line)}
   .callbar{padding-bottom:env(safe-area-inset-bottom)}
   .callbar a{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:0 14px;text-decoration:none;font-weight:600}
   .callbar a+a{border-left:1px solid var(--line)}
-  body{padding-bottom:${phone || whatsapp ? "calc(56px + env(safe-area-inset-bottom))" : "0"}}
+  body{padding-bottom:${phone || whatsapp || bookUrl ? "calc(56px + env(safe-area-inset-bottom))" : "0"}}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -683,7 +721,7 @@ ${d.preview ? `<div class="preview-bar">Unverbindlicher Entwurf, erstellt von ${
 <header><nav class="wrap">
 <a class="logo" href="#top">${brand}</a>
 <ul class="links" id="menu">${navItems.map(([id, l]) => `<li><a href="#${id}">${l}</a></li>`).join("")}</ul>
-<a class="btn navcta" href="${ctaHref}">${esc(c.cta)}</a>
+<a class="btn navcta" href="${esc(ctaHref)}"${ext}>${esc(ctaText)}</a>
 ${navItems.length ? `<button class="menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü öffnen">${ICON.menu}</button>` : ""}
 </nav></header>
 
@@ -730,7 +768,7 @@ ${whatsapp || insta ? `<div class="social">${whatsapp ? `<a class="btn ghost" hr
 <label class="field">Name<input required name="name" autocomplete="name"></label>
 <label class="field">E-Mail<input required type="email" name="email" autocomplete="email" inputmode="email"></label>
 <label class="field"><span><b>Telefon</b> (optional)</span><input name="tel" type="tel" autocomplete="tel" inputmode="tel"></label>
-<label class="field">${sie ? "Ihre" : "Deine"} Nachricht<textarea name="msg" rows="5"></textarea></label>
+<label class="field">${sie ? "Ihre" : "Deine"} Nachricht<textarea name="msg" id="msg" rows="5"></textarea></label>
 <label class="consent"><input type="checkbox" required> <span>Ich bin einverstanden, dass meine Angaben zur Beantwortung der Anfrage gespeichert werden. Details in der <a href="#datenschutz">Datenschutzerklärung</a>.</span></label>
 <button class="btn" type="submit">Nachricht senden</button>
 </form>
@@ -739,10 +777,11 @@ ${whatsapp || insta ? `<div class="social">${whatsapp ? `<a class="btn ghost" hr
 
 <footer><div class="wrap"><span>© ${year} ${esc(c.name)}</span><span><a href="#impressum">Impressum</a><a href="#datenschutz">Datenschutz</a></span></div></footer>
 ${navItems.length ? `<script>(function(){var b=document.querySelector(".menu"),m=document.getElementById("menu");function t(o){m.classList.toggle("open",o);b.setAttribute("aria-expanded",o);b.setAttribute("aria-label",o?"Menü schließen":"Menü öffnen")}b.addEventListener("click",function(){t(!m.classList.contains("open"))});m.addEventListener("click",function(e){if(e.target.closest("a"))t(false)});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&m.classList.contains("open")){t(false);b.focus()}})})()</script>` : ""}
-${phone || whatsapp ? `<div class="callbar">${phone ? `<a href="${telHref(phone)}">${ICON.phone} Anrufen</a>` : ""}${whatsapp ? `<a href="${waHref(whatsapp)}" target="_blank" rel="noopener">${ICON.chat} WhatsApp</a>` : ""}</div>` : ""}
+${!bookUrl && sec.contact && pickHref && c.services.length && sec.services ? `<script>(function(){var m=document.getElementById("msg");if(!m)return;m.addEventListener("input",function(){delete m.dataset.auto});document.querySelectorAll("[data-pick]").forEach(function(a){a.addEventListener("click",function(){if(!m.value.trim()||m.dataset.auto){m.value=${JSON.stringify(act.ask).replace(/</g, "\\u003c")}+a.dataset.pick;m.dataset.auto="1"}})})})()</script>` : ""}
+${phone || whatsapp || bookUrl ? `<div class="callbar">${bookUrl ? `<a href="${esc(bookUrl)}"${ext}>${ICON.cal} ${esc(act.btn)}</a>` : ""}${phone ? `<a href="${telHref(phone)}">${ICON.phone} Anrufen</a>` : ""}${whatsapp ? `<a href="${waHref(whatsapp)}" target="_blank" rel="noopener">${ICON.chat} WhatsApp</a>` : ""}</div>` : ""}
 </body>
 </html>`;
   }
 
-  global.BuildA = { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, resolveStyle, contrast, buildSite, generateCopy, mergeCopy, slug };
+  global.BuildA = { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, ACTIONS, defaultAction, safeUrl, resolveStyle, contrast, buildSite, generateCopy, mergeCopy, slug };
 })(window);

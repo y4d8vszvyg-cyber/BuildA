@@ -74,6 +74,12 @@
         <span class="chips" id="suggest"></span>
       </div>
       <label class="check"><input type="checkbox" name="showPrices" checked> Preise auf der Website anzeigen</label>
+
+      <label class="sub" style="margin-top:26px">Button bei jeder Leistung</label>
+      <div class="choices acts" id="actions"></div>
+      <label class="sub" for="bookingUrl">Link zu deiner Online-Buchung oder deinem Shop (optional)</label>
+      <input class="field sm" id="bookingUrl" name="bookingUrl" type="url" inputmode="url" placeholder="z. B. https://calendly.com/dein-name" maxlength="300">
+      <p class="tiny">Zum Beispiel Treatwell, Shore, Calendly, Doctolib, OpenTable oder ein Stripe- bzw. PayPal-Zahlungslink. Ohne Link führt der Button zum Kontaktformular, und die Leistung steht schon in der Nachricht.</p>
     </div>
 
     <!-- 5 Zielgruppe & Ansprache -->
@@ -230,7 +236,7 @@
 <script src="assets/generator.js"></script>
 <script>
 (function () {
-  const { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, resolveStyle, buildSite, slug } = window.BuildA;
+  const { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, ACTIONS, defaultAction, safeUrl, resolveStyle, buildSite, slug } = window.BuildA;
   const CONFIG = window.BUILDA_CONFIG || { stripe: {} };
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => [...document.querySelectorAll(s)];
@@ -238,7 +244,7 @@
   const steps = $$(".step");
   const STEP = Object.fromEntries(steps.map((s, n) => [s.dataset.name, n]));
   const state = {
-    industry: "", style: "", tone: "", layout: "split",
+    industry: "", style: "", tone: "", layout: "split", action: "", actionTouched: false,
     logo: "", photos: [],
     sections: Object.fromEntries(Object.keys(SECTIONS).map((k) => [k, true])),
   };
@@ -254,6 +260,7 @@
     $$("#industries .choice").forEach((x) => x.classList.toggle("on", x === b));
     state.industry = b.dataset.v;
     if (!state.tone) setTone(INDUSTRIES[state.industry].tone);
+    if (!state.actionTouched) setAction(defaultAction(state.industry));
     renderStyles();
     setTimeout(next, 200);
   });
@@ -345,6 +352,12 @@
   }
   addRow();
 
+  // Buchen-/Kaufen-Button: Vorschlag passend zur Branche, bis der Nutzer selbst wählt
+  $("#actions").innerHTML = Object.entries(ACTIONS).map(([k, v]) => `<button type="button" class="choice" data-v="${k}">${esc(v.label)}</button>`).join("");
+  function setAction(a) { state.action = a; $$("#actions .choice").forEach((b) => b.classList.toggle("on", b.dataset.v === a)); }
+  $("#actions").addEventListener("click", (e) => { const b = e.target.closest(".choice"); if (b) { state.actionTouched = true; setAction(b.dataset.v); } });
+  setAction("anfrage");
+
   // ----- Schritt 5: Zielgruppe & Ansprache -----
   $("#audSuggest").innerHTML = AUD.map((a) => `<button type="button">${a}</button>`).join("");
   $("#audSuggest").addEventListener("click", (e) => { if (e.target.tagName === "BUTTON") $("[name=audience]").value = e.target.textContent; });
@@ -433,7 +446,7 @@
     const req = steps[i].dataset.required;
     if (!req) return true;
     if (req === "industry" || req === "style") return !!state[req];
-    if (req === "services") return services().length > 0;
+    if (req === "services") return services().length > 0 && (!$("#bookingUrl").value.trim() || !!safeUrl($("#bookingUrl").value));
     return $(`[name=${req}]`).value.trim().length > 0;
   }
   const MSG = { industry: "Bitte wähle eine Branche", name: "Bitte gib einen Namen ein", city: "Bitte gib die Stadt ein", services: "Bitte trag mindestens eine Leistung ein", style: "Bitte wähle einen Stil" };
@@ -457,7 +470,11 @@
     if (f && !f.value) setTimeout(() => { if (step.classList.contains("on") && !step.contains(document.activeElement)) f.focus(); }, 50);
   }
   function next() {
-    if (!valid()) { toast(MSG[steps[i].dataset.required] || "Bitte ausfüllen"); return; }
+    if (!valid()) {
+      const badLink = steps[i].dataset.required === "services" && services().length;
+      toast(badLink ? "Der Buchungslink sieht nicht richtig aus, bitte prüfen" : MSG[steps[i].dataset.required] || "Bitte ausfüllen");
+      return;
+    }
     if (returnToResult) { returnToResult = false; generate(); return; }
     if (i < steps.length - 1) { i++; show(); } else generate();
   }
@@ -473,6 +490,7 @@
       name: v("name"), slogan: v("slogan"), city: v("city"), address: v("address"), phone: v("phone"),
       email: v("email"), whatsapp: v("whatsapp"), instagram: v("instagram"), hours: v("hours"),
       services: services(), showPrices: $("[name=showPrices]").checked,
+      action: state.action, bookingUrl: v("bookingUrl"),
       audience: v("audience"), about: v("about"), reviews: reviews(),
       logo: state.logo, photos: state.photos,
       accent: $("#useAccent").checked ? $("#accent").value : "",
@@ -500,6 +518,18 @@
       return null;
     }
   }
+  // In der srcdoc-Vorschau würden "#anker"-Links die Builder-Seite in den Rahmen laden – deshalb selbst scrollen
+  $("#preview").addEventListener("load", () => {
+    const doc = $("#preview").contentDocument;
+    if (!doc) return;
+    doc.addEventListener("click", (e) => {
+      const a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      e.preventDefault();
+      const target = doc.getElementById(a.getAttribute("href").slice(1));
+      if (target) target.scrollIntoView({ behavior: "smooth" });
+    });
+  });
   function render() {
     html = buildSite(collect(), aiCopy);
     $("#preview").srcdoc = html;
