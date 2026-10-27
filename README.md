@@ -15,6 +15,12 @@ KI-Website-Generator für lokale Unternehmen: 6 Fragen beantworten → fertige, 
 - `vorschau/` – Entwurfs-Websites für die Postkarten (nach 30 Tagen löschen)
 - `assets/vendor/qrcode.js` – QR-Code-Bibliothek (MIT, Kazuhiko Arase)
 
+## Design
+
+- **Passend zur Branche** (Standard): Jede Branche hat ein eigenes Farb- und Schriftpaar aus der UI/UX-Pro-Max-Datenbank, z. B. Petrol und Grün mit Figtree für Praxen, Grau und Signalorange für Handwerker, dunkel mit Barlow Condensed für Fitness. Die übrigen sieben Stile bleiben wählbar.
+- **Kontrast:** Akzentfarben, auch eine eigene Farbe des Kunden, werden automatisch so angepasst, dass Text mindestens 4,5:1 erreicht (WCAG AA).
+- **Mobil und barrierearm:** Menü auf dem Handy, sichtbarer Tastaturfokus, „Zum Inhalt springen“, Formular mit sichtbaren Feldbeschriftungen, Tippflächen ab 44 px, Rücksicht auf „Bewegung reduzieren“ und den unteren Bildschirmrand beim iPhone.
+
 ## Bezahlung einrichten
 
 1. In Stripe drei Zahlungslinks anlegen (Start, Pro, Business).

@@ -157,6 +157,7 @@ textarea.field { resize: vertical; min-height: 90px; }
 .choice:hover { border-color: #b9b0a3; }
 .choice.on { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
 .choice .sname { font-size: 1.05rem; }
+.choice .stag { display: block; color: var(--mute); font-size: .78rem; font-weight: 500; margin-top: 2px; }
 .choice .sw { display: flex; gap: 4px; margin-top: 10px; }
 .choice .sw i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.12); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }

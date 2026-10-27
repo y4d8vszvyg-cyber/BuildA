@@ -230,7 +230,7 @@
 <script src="assets/generator.js"></script>
 <script>
 (function () {
-  const { INDUSTRIES, STYLES, LAYOUTS, SECTIONS, buildSite, slug } = window.BuildA;
+  const { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, resolveStyle, buildSite, slug } = window.BuildA;
   const CONFIG = window.BUILDA_CONFIG || { stripe: {} };
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => [...document.querySelectorAll(s)];
@@ -254,6 +254,7 @@
     $$("#industries .choice").forEach((x) => x.classList.toggle("on", x === b));
     state.industry = b.dataset.v;
     if (!state.tone) setTone(INDUSTRIES[state.industry].tone);
+    renderStyles();
     setTimeout(next, 200);
   });
 
@@ -402,13 +403,19 @@
   });
 
   // ----- Schritt 8: Design -----
-  $("#styles").innerHTML = Object.entries(STYLES)
-    .map(([k, v]) => `<button type="button" class="choice" data-v="${k}"><span class="sname" style="font-family:${v.head}">${esc(v.label)}</span><div class="sw"><i style="background:${v.primary}"></i><i style="background:${v.accent}"></i><i style="background:${v.bg}"></i></div></button>`).join("");
+  // Erste Kachel: Design passend zur gewählten Branche (Farben und Schriften aus der UI/UX-Datenbank)
+  function renderStyles() {
+    const own = INDUSTRY_STYLES[state.industry] ? [["branche", { ...resolveStyle("branche", state.industry), label: "Passend zur Branche" }]] : [];
+    if (!own.length && state.style === "branche") state.style = "";
+    $("#styles").innerHTML = own.concat(Object.entries(STYLES))
+      .map(([k, v]) => `<button type="button" class="choice${k === state.style ? " on" : ""}" data-v="${k}"><span class="sname" style="font-family:${v.head}">${esc(v.label)}</span>${k === "branche" ? `<small class="stag">empfohlen für ${esc(INDUSTRIES[state.industry].label)}</small>` : ""}<div class="sw"><i style="background:${v.primary}"></i><i style="background:${v.accent}"></i><i style="background:${v.bg}"></i></div></button>`).join("");
+  }
+  renderStyles();
   $("#styles").addEventListener("click", (e) => {
     const b = e.target.closest(".choice"); if (!b) return;
     $$("#styles .choice").forEach((x) => x.classList.toggle("on", x === b));
     state.style = b.dataset.v;
-    $("#accent").value = STYLES[state.style].accent;
+    $("#accent").value = resolveStyle(state.style, state.industry).accent;
   });
   $("#layoutSeg").innerHTML = Object.entries(LAYOUTS).map(([k, v]) => `<button type="button" data-v="${k}" class="${k === state.layout ? "on" : ""}">${esc(v)}</button>`).join("");
   $("#layoutSeg").addEventListener("click", (e) => {
@@ -442,7 +449,7 @@
     $("#next").textContent = i === steps.length - 1 ? "Website erstellen" : "Weiter →";
     if (steps[i].dataset.name === "Leistungen & Preise") renderSuggest();
     if (steps[i].dataset.name === "Design" && !state.style) {
-      $(`#styles [data-v="${state.industry === "praxis" || state.industry === "beratung" ? "klar" : state.industry === "friseur" || state.industry === "kosmetik" ? "elegant" : "warm"}"]`)?.click();
+      $(`#styles [data-v="${INDUSTRY_STYLES[state.industry] ? "branche" : "klar"}"]`)?.click();
     }
     const f = steps[i].querySelector("input.field,textarea");
     const step = steps[i];

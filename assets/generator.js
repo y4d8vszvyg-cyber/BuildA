@@ -256,6 +256,38 @@
     dunkel: { label: "Dunkel", primary: "#e5c07b", accent: "#e5c07b", bg: "#121212", soft: "#1c1c1c", text: "#ededed", head: "'Space Grotesk', system-ui, sans-serif", body: "'Inter', system-ui, sans-serif", font: "Space+Grotesk:wght@500;700&family=Inter:wght@400;600", radius: "4px" },
   };
 
+  // ---------- Branchen-Design ----------
+  // Farben und Schriften aus der UI/UX-Pro-Max-Datenbank (Produkttyp → Palette, Schriftpaar).
+  // Akzent = Markenfarbe der Palette, primary = deren CTA-Farbe; Töne, die auf Weiß unter 4,5:1 lagen, sind abgedunkelt.
+  const INDUSTRY_STYLES = {
+    // Beauty/Spa/Wellness: Rosa + Lavendel, Playfair Display / Inter
+    beauty: { primary: "#7c3aed", accent: "#be185d", bg: "#fdf2f8", soft: "#f1eef5", text: "#831843", head: "'Playfair Display', Georgia, serif", body: "'Inter', system-ui, sans-serif", font: "Playfair+Display:wght@500;700&family=Inter:wght@400;600", radius: "12px" },
+    // Bakery/Cafe: warmes Braun + Creme, Playfair Display SC / Karla
+    restaurant: { primary: "#92400e", accent: "#92400e", bg: "#fffbeb", soft: "#fef3c7", text: "#78350f", head: "'Playfair Display SC', Georgia, serif", body: "'Karla', system-ui, sans-serif", font: "Playfair+Display+SC:wght@700&family=Karla:wght@400;600", radius: "6px" },
+    // Construction: Industriegrau + Signalorange, Poppins / Open Sans
+    handwerk: { primary: "#c2410c", accent: "#475569", bg: "#f8fafc", soft: "#ebf0f5", text: "#334155", head: "'Poppins', system-ui, sans-serif", body: "'Open Sans', system-ui, sans-serif", font: "Poppins:wght@600;700&family=Open+Sans:wght@400;600", radius: "4px" },
+    // Automotive: dunkles Blaugrau + Signalrot, Outfit / Rubik
+    kfz: { primary: "#dc2626", accent: "#b91c1c", bg: "#f8fafc", soft: "#e9edf1", text: "#0f172a", head: "'Outfit', system-ui, sans-serif", body: "'Rubik', system-ui, sans-serif", font: "Outfit:wght@600;700&family=Rubik:wght@400;500", radius: "6px" },
+    // Fitness/Gym: dunkel, Energie-Orange + Grün, Barlow Condensed / Barlow
+    fitness: { primary: "#22c55e", accent: "#f97316", bg: "#1f2937", soft: "#374151", text: "#f8fafc", head: "'Barlow Condensed', system-ui, sans-serif", body: "'Barlow', system-ui, sans-serif", font: "Barlow+Condensed:wght@600;700&family=Barlow:wght@400;600", radius: "6px" },
+    // Photography Studio: Schwarz + Weiß, Archivo / Space Grotesk
+    fotograf: { primary: "#f8fafc", accent: "#d4d4d8", bg: "#000000", soft: "#181818", text: "#fafafa", head: "'Archivo', system-ui, sans-serif", body: "'Space Grotesk', system-ui, sans-serif", font: "Archivo:wght@600;800&family=Space+Grotesk:wght@400;500", radius: "0px" },
+    // Medical Clinic: Petrol + Grün, Figtree / Noto Sans
+    praxis: { primary: "#15803d", accent: "#0e7490", bg: "#f0fdfa", soft: "#e8f1f6", text: "#134e4a", head: "'Figtree', system-ui, sans-serif", body: "'Noto Sans', system-ui, sans-serif", font: "Figtree:wght@600;700&family=Noto+Sans:wght@400;600", radius: "10px" },
+    // Service: Navy + Blau, Outfit / Work Sans
+    reinigung: { primary: "#0369a1", accent: "#0369a1", bg: "#f8fafc", soft: "#e8ecf1", text: "#020617", head: "'Outfit', system-ui, sans-serif", body: "'Work Sans', system-ui, sans-serif", font: "Outfit:wght@600;700&family=Work+Sans:wght@400;600", radius: "8px" },
+    // B2B Service: Navy + Blau, EB Garamond / Lato
+    beratung: { primary: "#0369a1", accent: "#0369a1", bg: "#f8fafc", soft: "#e8ecf1", text: "#020617", head: "'EB Garamond', Georgia, serif", body: "'Lato', system-ui, sans-serif", font: "EB+Garamond:wght@500;700&family=Lato:wght@400;700", radius: "4px" },
+  };
+  INDUSTRY_STYLES.friseur = INDUSTRY_STYLES.beauty;
+  INDUSTRY_STYLES.kosmetik = INDUSTRY_STYLES.beauty;
+
+  // "branche" = Design passend zur Branche, sonst einer der festen Stile
+  function resolveStyle(style, industry) {
+    if (STYLES[style]) return STYLES[style];
+    return { label: "Passend zur Branche", ...(INDUSTRY_STYLES[industry] || STYLES.klar) };
+  }
+
   const LAYOUTS = {
     split: "Text links, Foto rechts",
     center: "Zentriert, nur Schrift",
@@ -271,13 +303,37 @@
     contact: "Kontakt & Öffnungszeiten",
   };
 
+  // ---------- Kontrast (WCAG 2) ----------
+  const rgb = (hex) => {
+    const n = parseInt(String(hex).replace("#", ""), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  };
+  const toHex = (c) => "#" + c.map((v) => v.toString(16).padStart(2, "0")).join("");
+  const lum = (hex) => {
+    const [r, g, b] = rgb(hex).map((v) => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const contrast = (a, b) => {
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+    return (x + 0.05) / (y + 0.05);
+  };
+
   // Lesbare Textfarbe auf einer Hintergrundfarbe
   function onColor(hex) {
-    const m = /^#?([0-9a-f]{6})$/i.exec(hex || "");
-    if (!m) return "#ffffff";
-    const n = parseInt(m[1], 16);
-    const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-    return 0.299 * r + 0.587 * g + 0.114 * b > 160 ? "#111111" : "#ffffff";
+    if (!/^#[0-9a-f]{6}$/i.test(hex || "")) return "#ffffff";
+    return contrast(hex, "#ffffff") >= contrast(hex, "#111111") ? "#ffffff" : "#111111";
+  }
+
+  // Dunkelt bzw. hellt eine Farbe so weit ab, bis sie auf dem Hintergrund lesbar ist (4,5:1 für Text)
+  function readable(hex, bg, min = 4.5) {
+    if (contrast(hex, bg) >= min) return hex;
+    const to = contrast(bg, "#000000") >= contrast(bg, "#ffffff") ? [0, 0, 0] : [255, 255, 255];
+    const c = rgb(hex);
+    for (let k = 0.05; k < 1; k += 0.05) {
+      const mixed = toHex(c.map((v, i) => Math.round(v + (to[i] - v) * k)));
+      if (contrast(mixed, bg) >= min) return mixed;
+    }
+    return toHex(to);
   }
 
   // ---------- Vorlagentexte ----------
@@ -355,6 +411,7 @@
     pin: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>',
     clock: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>',
     insta: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg>',
+    menu: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
     mail: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>',
   };
 
@@ -381,10 +438,13 @@
   function buildSite(d, ai) {
     d = d || {};
     const c = mergeCopy(generateCopy(d), ai, d);
-    const base = STYLES[d.style] || STYLES.klar;
+    const base = resolveStyle(d.style, d.industry);
     const custom = /^#[0-9a-f]{6}$/i.test(d.accent || "") ? d.accent : "";
     const s = custom ? { ...base, primary: custom, accent: custom } : base;
     const btnText = onColor(s.primary);
+    // Akzent wird für kleine Schrift genutzt (Labels, Icons) – muss auf Grund- und Wechselfarbe lesbar bleiben
+    const accentText = readable(readable(s.accent, s.bg), s.soft);
+    const dark = contrast(s.bg, "#ffffff") > contrast(s.bg, "#000000");
     const sec = { ...Object.fromEntries(Object.keys(SECTIONS).map((k) => [k, true])), ...(d.sections || {}) };
 
     const photos = (d.photos || []).filter(isImg);
@@ -456,7 +516,7 @@
       hero = `<section class="hero hero-center"><div class="wrap">${heroText}</div></section>`;
     } else {
       const media = heroPhoto
-        ? `<img class="hero-img" src="${heroPhoto}" alt="${esc(c.name)}">`
+        ? `<img class="hero-img" src="${heroPhoto}" alt="${esc(c.name)}" fetchpriority="high">`
         : `<div class="hero-block"><span>${esc(c.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 3))}</span></div>`;
       hero = `<section class="hero hero-split"><div class="wrap split"><div>${heroText}</div>${media}</div></section>`;
     }
@@ -477,7 +537,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${esc(c.seoTitle)}</title>
 <meta name="description" content="${esc(c.seoDesc)}">
 <meta name="keywords" content="${esc(c.keywords)}">
@@ -485,36 +545,43 @@
 <meta property="og:description" content="${esc(c.seoDesc)}">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="${s.bg}">
+<meta name="color-scheme" content="${dark ? "dark" : "light"}">
 ${d.preview ? '<meta name="robots" content="noindex, nofollow">' : ""}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=${s.font}&display=swap" rel="stylesheet">
 <script type="application/ld+json">${ld(jsonLd)}</script>
 ${faqLd ? `<script type="application/ld+json">${ld(faqLd)}</script>` : ""}
 <style>
-:root{--p:${s.primary};--a:${s.accent};--bg:${s.bg};--soft:${s.soft};--t:${s.text};--r:${s.radius};--btn:${btnText};--line:color-mix(in srgb,var(--t) 12%,transparent)}
+:root{--p:${s.primary};--a:${accentText};--bg:${s.bg};--soft:${s.soft};--t:${s.text};--r:${s.radius};--btn:${btnText};--line:color-mix(in srgb,var(--t) 12%,transparent);--ease:cubic-bezier(.2,.7,.3,1);--mute:color-mix(in srgb,var(--t) 82%,var(--bg))}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
 body{font-family:${s.body};color:var(--t);background:var(--bg);line-height:1.65;font-size:17px}
-h1,h2,h3{font-family:${s.head};line-height:1.15;font-weight:700}
+h1,h2,h3{font-family:${s.head};line-height:1.15;font-weight:700;text-wrap:balance}
+p{text-wrap:pretty}
 a{color:inherit}
 img{display:block;max-width:100%}
+:focus-visible{outline:2px solid var(--a);outline-offset:3px;border-radius:2px}
+.skip{position:absolute;left:12px;top:-60px;z-index:50;background:var(--p);color:var(--btn);padding:10px 16px;border-radius:var(--r);text-decoration:none;font-weight:600}
+.skip:focus{top:12px}
 .wrap{max-width:1120px;margin:0 auto;padding:0 22px}
 header{position:sticky;top:0;z-index:10;background:var(--bg);border-bottom:1px solid var(--line)}
 nav{display:flex;align-items:center;justify-content:space-between;gap:20px;height:72px}
 .logo{font-family:${s.head};font-weight:700;font-size:1.2rem;text-decoration:none;white-space:nowrap}
 .logo-img{max-height:44px;width:auto}
 .links{display:flex;gap:28px;list-style:none}
-.links a{text-decoration:none;font-size:.95rem;white-space:nowrap}
+.links a{text-decoration:none;font-size:.95rem;white-space:nowrap;transition:color .2s var(--ease)}
 .links a:hover{color:var(--a)}
-.btn{display:inline-flex;align-items:center;gap:8px;background:var(--p);color:var(--btn);padding:13px 24px;border-radius:var(--r);text-decoration:none;font-weight:600;border:1px solid var(--p);cursor:pointer;font:inherit;font-weight:600;white-space:nowrap}
+.menu{display:none;width:44px;height:44px;align-items:center;justify-content:center;background:none;border:1px solid var(--line);border-radius:var(--r);color:var(--t);cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;background:var(--p);color:var(--btn);padding:12px 24px;border-radius:var(--r);text-decoration:none;font-weight:600;border:1px solid var(--p);cursor:pointer;font:inherit;font-weight:600;white-space:nowrap;transition:filter .2s var(--ease),border-color .2s var(--ease),transform .15s var(--ease)}
 .btn:hover{filter:brightness(1.08)}
+.btn:active{transform:scale(.98)}
 .btn.ghost{background:transparent;color:var(--t);border-color:var(--line)}
 .btn.ghost:hover{border-color:var(--t)}
 .navcta{padding:9px 16px;font-size:.92rem}
 .hero{padding:96px 0 84px}
 .kicker{text-transform:uppercase;letter-spacing:.14em;font-size:.78rem;font-weight:600;color:var(--a);margin-bottom:18px}
 .hero h1{font-size:clamp(2.2rem,5.2vw,3.9rem);margin-bottom:20px;max-width:16ch}
-.hero .lead{font-size:1.15rem;max-width:52ch;opacity:.8;margin-bottom:32px}
+.hero .lead{font-size:1.15rem;max-width:52ch;color:var(--mute);margin-bottom:32px}
 .actions{display:flex;gap:12px;flex-wrap:wrap}
 .split{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center}
 .hero-img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:var(--r)}
@@ -524,7 +591,7 @@ nav{display:flex;align-items:center;justify-content:space-between;gap:20px;heigh
 .hero-center h1,.hero-center .lead{margin-left:auto;margin-right:auto}
 .hero-center .actions{justify-content:center}
 .hero-photo{background-size:cover;background-position:center;color:#fff;padding:150px 0 130px}
-.hero-photo .kicker{color:#fff;opacity:.85}
+.hero-photo .kicker,.hero-photo .lead{color:#fff}
 .hero-photo .btn.ghost{color:#fff;border-color:rgba(255,255,255,.5)}
 .facts{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .facts .wrap{display:flex;flex-wrap:wrap;gap:12px 36px;padding-top:18px;padding-bottom:18px;font-size:.95rem}
@@ -536,7 +603,7 @@ section.alt{background:var(--soft)}
 h2{font-size:clamp(1.75rem,3.6vw,2.5rem);margin-bottom:20px}
 .about{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
 .about.single{grid-template-columns:1fr;max-width:760px}
-.about p{margin-bottom:14px;opacity:.88}
+.about p{margin-bottom:14px;color:var(--mute)}
 .about img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:var(--r)}
 .usps{list-style:none;margin-top:24px;display:grid;gap:10px}
 .usps li{padding-left:22px;position:relative}
@@ -545,25 +612,25 @@ h2{font-size:clamp(1.75rem,3.6vw,2.5rem);margin-bottom:20px}
 .services li{display:grid;grid-template-columns:48px 1fr auto;gap:18px;padding:22px 0;border-bottom:1px solid var(--line);align-items:baseline}
 .services .num{font-size:.85rem;color:var(--a);font-weight:600}
 .services h3{font-size:1.15rem;margin-bottom:4px}
-.services p{opacity:.75;font-size:.98rem}
+.services p{color:var(--mute);font-size:.98rem}
 .services .price{font-weight:600;white-space:nowrap}
-.note{opacity:.6;font-size:.88rem;margin-top:16px}
+.note{color:var(--mute);font-size:.88rem;margin-top:16px}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:32px}
 .gallery img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:var(--r)}
 .reviews{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:22px;margin-top:32px}
 .reviews blockquote{border-left:2px solid var(--a);padding:4px 0 4px 20px}
 .reviews p{font-size:1.05rem;margin-bottom:10px}
-.reviews cite{font-style:normal;opacity:.65;font-size:.92rem}
+.reviews cite{font-style:normal;color:var(--mute);font-size:.92rem}
 .faq{max-width:780px;margin-top:28px}
 details{border-bottom:1px solid var(--line);padding:18px 0}
 summary{font-weight:600;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:16px}
 summary::-webkit-details-marker{display:none}
 summary::after{content:"+";color:var(--a);font-size:1.3rem;line-height:1}
 details[open] summary::after{content:"−"}
-details p{margin-top:10px;opacity:.8}
+details p{margin-top:10px;color:var(--mute)}
 .contact{display:grid;grid-template-columns:1fr 1fr;gap:56px}
 .info{display:grid;gap:22px;align-content:start}
-.info small{display:block;opacity:.6;font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
+.info small{display:block;color:var(--mute);font-size:.8rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
 .info a{text-decoration:none}
 .info a:hover{color:var(--a)}
 .hours{list-style:none}
@@ -571,16 +638,25 @@ details p{margin-top:10px;opacity:.8}
 form{display:grid;gap:12px}
 input,textarea{width:100%;padding:13px 15px;border-radius:var(--r);border:1px solid color-mix(in srgb,var(--t) 22%,transparent);background:var(--bg);color:var(--t);font:inherit}
 input:focus,textarea:focus{outline:2px solid var(--a);outline-offset:1px}
-.consent{font-size:.85rem;opacity:.75;display:flex;gap:10px;align-items:flex-start}
+.field{display:grid;gap:6px;font-size:.9rem;font-weight:600}
+.field span{color:var(--mute);font-weight:400}
+.consent{font-size:.85rem;color:var(--mute);display:flex;gap:10px;align-items:flex-start}
 .consent input{width:auto;margin-top:4px}
 footer{padding:36px 0;border-top:1px solid var(--line);font-size:.9rem}
-footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;opacity:.75}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--mute)}
 footer a{margin-left:16px}
 .callbar{display:none}
+.links.open{display:flex}
 .preview-bar{background:#fef3c7;color:#78350f;font:500 14px/1.45 system-ui,sans-serif;padding:10px 22px;text-align:center}
 .preview-bar a{color:#78350f;font-weight:700;margin-left:6px}
 @media(max-width:860px){
-  .links,.navcta{display:none}
+  .navcta{display:none}
+  .menu{display:inline-flex}
+  .links{display:none;position:absolute;top:100%;left:0;right:0;flex-direction:column;gap:0;padding:8px 22px 16px;background:var(--bg);border-bottom:1px solid var(--line);box-shadow:0 12px 24px -16px rgba(0,0,0,.35)}
+  .links.open{display:flex}
+  .links a{display:flex;align-items:center;min-height:48px;font-size:1.05rem;border-bottom:1px solid var(--line)}
+  .links li:last-child a{border-bottom:0}
+  .facts a,.facts .wrap>span{min-height:44px}
   .split,.about,.contact{grid-template-columns:1fr}
   .split{gap:36px}
   .hero{padding:56px 0 56px}
@@ -590,21 +666,28 @@ footer a{margin-left:16px}
   .services li{grid-template-columns:1fr auto}
   .services .num{display:none}
   .callbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--bg);border-top:1px solid var(--line)}
-  .callbar a{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;text-decoration:none;font-weight:600}
+  .callbar{padding-bottom:env(safe-area-inset-bottom)}
+  .callbar a{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:56px;padding:0 14px;text-decoration:none;font-weight:600}
   .callbar a+a{border-left:1px solid var(--line)}
-  body{padding-bottom:${phone || whatsapp ? "56px" : "0"}}
+  body{padding-bottom:${phone || whatsapp ? "calc(56px + env(safe-area-inset-bottom))" : "0"}}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
 }
 </style>
 </head>
 <body>
+<a class="skip" href="#top">Zum Inhalt springen</a>
 ${d.preview ? `<div class="preview-bar">Unverbindlicher Entwurf, erstellt von ${esc(d.preview.by || "BuildA")} für ${esc(c.name)}. Dies ist nicht die offizielle Website des Unternehmens.${d.preview.contact ? ` <a href="${esc(d.preview.contact)}">Entwurf übernehmen</a>` : ""}</div>` : ""}
 <header><nav class="wrap">
 <a class="logo" href="#top">${brand}</a>
-<ul class="links">${navItems.map(([id, l]) => `<li><a href="#${id}">${l}</a></li>`).join("")}</ul>
+<ul class="links" id="menu">${navItems.map(([id, l]) => `<li><a href="#${id}">${l}</a></li>`).join("")}</ul>
 <a class="btn navcta" href="${ctaHref}">${esc(c.cta)}</a>
+${navItems.length ? `<button class="menu" type="button" aria-expanded="false" aria-controls="menu" aria-label="Menü öffnen">${ICON.menu}</button>` : ""}
 </nav></header>
 
-<main id="top">
+<main id="top" tabindex="-1">
 ${hero}
 ${facts.length ? `<div class="facts"><div class="wrap">${facts.join("")}</div></div>` : ""}
 
@@ -643,11 +726,11 @@ ${fullAddress ? `<div><small>Adresse</small><a href="${mapsHref}" target="_blank
 ${hours.length ? `<div><small>Öffnungszeiten</small><ul class="hours">${hours.map((h) => `<li>${esc(h)}</li>`).join("")}</ul></div>` : ""}
 ${whatsapp || insta ? `<div class="social">${whatsapp ? `<a class="btn ghost" href="${waHref(whatsapp)}" target="_blank" rel="noopener">${ICON.chat} WhatsApp</a>` : ""}${insta ? `<a class="btn ghost" href="${esc(instaHref(insta))}" target="_blank" rel="noopener">${ICON.insta} Instagram</a>` : ""}</div>` : ""}
 </div>
-<form onsubmit="event.preventDefault();this.innerHTML='<p><strong>Danke für ${sie ? "Ihre" : "deine"} Nachricht.</strong> Wir melden uns so schnell wie möglich.</p>'">
-<input required name="name" placeholder="Name" aria-label="Name">
-<input required type="email" name="email" placeholder="E-Mail" aria-label="E-Mail">
-<input name="tel" placeholder="Telefon (optional)" aria-label="Telefon">
-<textarea name="msg" rows="5" placeholder="${sie ? "Ihre" : "Deine"} Nachricht" aria-label="Nachricht"></textarea>
+<form aria-live="polite" onsubmit="event.preventDefault();this.innerHTML='<p><strong>Danke für ${sie ? "Ihre" : "deine"} Nachricht.</strong> Wir melden uns so schnell wie möglich.</p>'">
+<label class="field">Name<input required name="name" autocomplete="name"></label>
+<label class="field">E-Mail<input required type="email" name="email" autocomplete="email" inputmode="email"></label>
+<label class="field"><span><b>Telefon</b> (optional)</span><input name="tel" type="tel" autocomplete="tel" inputmode="tel"></label>
+<label class="field">${sie ? "Ihre" : "Deine"} Nachricht<textarea name="msg" rows="5"></textarea></label>
 <label class="consent"><input type="checkbox" required> <span>Ich bin einverstanden, dass meine Angaben zur Beantwortung der Anfrage gespeichert werden. Details in der <a href="#datenschutz">Datenschutzerklärung</a>.</span></label>
 <button class="btn" type="submit">Nachricht senden</button>
 </form>
@@ -655,10 +738,11 @@ ${whatsapp || insta ? `<div class="social">${whatsapp ? `<a class="btn ghost" hr
 </main>
 
 <footer><div class="wrap"><span>© ${year} ${esc(c.name)}</span><span><a href="#impressum">Impressum</a><a href="#datenschutz">Datenschutz</a></span></div></footer>
+${navItems.length ? `<script>(function(){var b=document.querySelector(".menu"),m=document.getElementById("menu");function t(o){m.classList.toggle("open",o);b.setAttribute("aria-expanded",o);b.setAttribute("aria-label",o?"Menü schließen":"Menü öffnen")}b.addEventListener("click",function(){t(!m.classList.contains("open"))});m.addEventListener("click",function(e){if(e.target.closest("a"))t(false)});document.addEventListener("keydown",function(e){if(e.key==="Escape"&&m.classList.contains("open")){t(false);b.focus()}})})()</script>` : ""}
 ${phone || whatsapp ? `<div class="callbar">${phone ? `<a href="${telHref(phone)}">${ICON.phone} Anrufen</a>` : ""}${whatsapp ? `<a href="${waHref(whatsapp)}" target="_blank" rel="noopener">${ICON.chat} WhatsApp</a>` : ""}</div>` : ""}
 </body>
 </html>`;
   }
 
-  global.BuildA = { INDUSTRIES, STYLES, LAYOUTS, SECTIONS, buildSite, generateCopy, mergeCopy, slug };
+  global.BuildA = { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, resolveStyle, contrast, buildSite, generateCopy, mergeCopy, slug };
 })(window);
