@@ -97,9 +97,18 @@
 
     <!-- 6 Über dich -->
     <div class="step" data-name="Über dich">
-      <h2>Erzähl kurz von dir (optional)</h2>
-      <p class="hint">Echte Details wie „seit 2012“, „Meisterbetrieb“ oder „zu dritt im Team“ machen die Website persönlich. Die KI nutzt nur, was du hier schreibst, und erfindet nichts dazu.</p>
-      <textarea class="field" name="about" rows="4" maxlength="600" placeholder="z. B. Ich bin Lisa, Friseurmeisterin, und habe das Studio 2012 eröffnet. Wir sind zu dritt und haben uns auf Blondtöne und Balayage spezialisiert."></textarea>
+      <h2>Beschreib dein Unternehmen</h2>
+      <p class="hint">Echte Details wie „seit 2012“, „Meisterbetrieb“ oder „zu dritt im Team“ machen die Website persönlich. Die KI nutzt nur, was du hier schreibst, und erfindet nichts dazu. Je genauer du beschreibst, desto besser wird die Seite – das 3D-Erlebnis braucht eine ausführliche Beschreibung.</p>
+      <label class="sub" for="about">Wer seid ihr? Geschichte, Team, seit wann</label>
+      <textarea class="field" id="about" name="about" rows="4" maxlength="1200" placeholder="z. B. Ich bin Lisa, Friseurmeisterin, und habe das Studio 2012 eröffnet. Wir sind zu dritt und haben uns auf Blondtöne und Balayage spezialisiert."></textarea>
+      <label class="sub" for="special" style="margin-top:16px">Was macht euch besonders?</label>
+      <textarea class="field sm" id="special" name="special" rows="3" maxlength="800" placeholder="z. B. Wir färben nur mit ammoniakfreien Farben, nehmen uns für jede Beratung 15 Minuten und haben dienstags bis 20 Uhr geöffnet."></textarea>
+      <label class="sub" for="process" style="margin-top:16px">Wie läuft ein Termin oder Auftrag ab? (ein Schritt pro Zeile)</label>
+      <textarea class="field sm" id="process" name="process" rows="4" maxlength="800" placeholder="Kurze Beratung, was zu dir passt&#10;Waschen mit Kopfmassage&#10;Schneiden oder Färben&#10;Styling und Pflegetipps für zu Hause"></textarea>
+      <div class="detail" id="detail">
+        <div class="detailbar"><i id="detailBar"></i></div>
+        <span id="detailTxt"></span>
+      </div>
       <label class="sub" style="margin-top:22px">Echte Kundenstimmen (optional, z. B. von Google)</label>
       <div id="reviewRows"></div>
       <p class="tiny">Bitte nur echte Bewertungen verwenden. Erfundene Bewertungen sind abmahnfähig.</p>
@@ -129,6 +138,16 @@
       <p class="hint">Alles lässt sich danach noch ändern.</p>
       <label class="sub">Stil</label>
       <div class="choices" id="styles"></div>
+      <label class="sub" style="margin-top:22px">Effekt</label>
+      <div class="choices fx" id="effects">
+        <button type="button" class="choice on" data-v=""><b>Klassisch</b><small>schlicht und schnell geladen</small></button>
+        <button type="button" class="choice" data-v="3d" id="fx3d"><b>3D-Erlebnis</b><small>3D-Szene, die sich beim Scrollen bewegt, und eure Geschichte in Kapiteln</small></button>
+      </div>
+      <p class="tiny" id="fxHint"></p>
+      <div id="sceneBox" hidden>
+        <label class="sub">3D-Motiv</label>
+        <div class="choices fx" id="scenes"></div>
+      </div>
       <div class="grid2" style="margin-top:22px">
         <div>
           <label class="sub">Aufbau oben</label>
@@ -236,7 +255,7 @@
 <script src="assets/generator.js"></script>
 <script>
 (function () {
-  const { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, ACTIONS, defaultAction, safeUrl, resolveStyle, buildSite, slug } = window.BuildA;
+  const { INDUSTRIES, STYLES, INDUSTRY_STYLES, LAYOUTS, SECTIONS, ACTIONS, SCENES, DETAIL_MIN, detailLength, defaultAction, safeUrl, resolveStyle, buildSite, slug } = window.BuildA;
   const CONFIG = window.BUILDA_CONFIG || { stripe: {} };
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => [...document.querySelectorAll(s)];
@@ -244,7 +263,7 @@
   const steps = $$(".step");
   const STEP = Object.fromEntries(steps.map((s, n) => [s.dataset.name, n]));
   const state = {
-    industry: "", style: "", tone: "", layout: "split", action: "", actionTouched: false,
+    industry: "", style: "", tone: "", layout: "split", action: "", actionTouched: false, effect: "", scene: "",
     logo: "", photos: [],
     sections: Object.fromEntries(Object.keys(SECTIONS).map((k) => [k, true])),
   };
@@ -364,6 +383,16 @@
   function setTone(t) { state.tone = t; $$("#toneSeg button").forEach((b) => b.classList.toggle("on", b.dataset.v === t)); }
   $("#toneSeg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) setTone(b.dataset.v); });
 
+  // ----- Schritt 6: Beschreibung – Zähler fürs 3D-Erlebnis -----
+  const detail = () => detailLength({ about: $("#about").value, special: $("#special").value, process: $("#process").value });
+  function updateDetail() {
+    const n = detail(), ok = n >= DETAIL_MIN;
+    $("#detailBar").style.width = Math.min(100, Math.round((n / DETAIL_MIN) * 100)) + "%";
+    $("#detail").classList.toggle("ok", ok);
+    $("#detailTxt").textContent = ok ? `${n} Zeichen – das 3D-Erlebnis ist freigeschaltet` : `${n} von ${DETAIL_MIN} Zeichen für das 3D-Erlebnis`;
+    render3d();
+  }
+
   // ----- Schritt 6: Kundenstimmen -----
   for (let n = 0; n < 3; n++) {
     const r = document.createElement("div");
@@ -435,11 +464,40 @@
     const b = e.target.closest("button"); if (!b) return;
     state.layout = b.dataset.v;
     $$("#layoutSeg button").forEach((x) => x.classList.toggle("on", x === b));
-    if (state.layout !== "center" && !state.photos.length) toast("Tipp: Für diesen Aufbau ein Foto hochladen");
+    if (state.layout !== "center" && !state.photos.length && state.effect !== "3d") toast("Tipp: Für diesen Aufbau ein Foto hochladen");
   });
   $("#accent").addEventListener("input", () => { $("#useAccent").checked = true; });
   $("#sectionChecks").innerHTML = Object.entries(SECTIONS).map(([k, v]) => `<label class="check"><input type="checkbox" data-sec="${k}" checked> ${esc(v)}</label>`).join("");
   $("#sectionChecks").addEventListener("change", (e) => { if (e.target.dataset.sec) state.sections[e.target.dataset.sec] = e.target.checked; });
+
+  // 3D-Erlebnis: erst mit ausführlicher Beschreibung (Schritt „Über dich“)
+  $("#scenes").innerHTML = [["", "Passend zur Branche"]].concat(Object.entries(SCENES))
+    .map(([k, v]) => `<button type="button" class="choice${k === state.scene ? " on" : ""}" data-v="${k}">${esc(v)}</button>`).join("");
+  function render3d() {
+    const n = detail(), ok = n >= DETAIL_MIN;
+    if (!ok && state.effect === "3d") state.effect = "";
+    $("#fx3d").classList.toggle("locked", !ok);
+    $("#fx3d").setAttribute("aria-disabled", String(!ok));
+    $$("#effects .choice").forEach((b) => b.classList.toggle("on", b.dataset.v === state.effect));
+    $("#sceneBox").hidden = state.effect !== "3d";
+    $("#fxHint").innerHTML = ok
+      ? (state.effect === "3d" ? "Die 3D-Szene ersetzt oben das Foto. Deine Fotos erscheinen bei „Über uns“ und in der Galerie." : "")
+      : `Für das 3D-Erlebnis brauchen wir eine ausführlichere Beschreibung deines Unternehmens (noch ${DETAIL_MIN - n} Zeichen). <button type="button" class="linkbtn" id="toDetail">Beschreibung ergänzen</button>`;
+  }
+  $("#effects").addEventListener("click", (e) => {
+    const b = e.target.closest(".choice"); if (!b) return;
+    if (b.classList.contains("locked")) { toast(`Noch ${DETAIL_MIN - detail()} Zeichen Beschreibung für das 3D-Erlebnis`); return; }
+    state.effect = b.dataset.v;
+    render3d();
+  });
+  $("#scenes").addEventListener("click", (e) => {
+    const b = e.target.closest(".choice"); if (!b) return;
+    state.scene = b.dataset.v;
+    $$("#scenes .choice").forEach((x) => x.classList.toggle("on", x === b));
+  });
+  $("#fxHint").addEventListener("click", (e) => { if (e.target.id === "toDetail") { i = STEP["Über dich"]; show(); $("#about").focus(); } });
+  ["#about", "#special", "#process"].forEach((sel) => $(sel).addEventListener("input", updateDetail));
+  updateDetail();
 
   // ----- Navigation -----
   function valid() {
@@ -491,9 +549,10 @@
       email: v("email"), whatsapp: v("whatsapp"), instagram: v("instagram"), hours: v("hours"),
       services: services(), showPrices: $("[name=showPrices]").checked,
       action: state.action, bookingUrl: v("bookingUrl"),
-      audience: v("audience"), about: v("about"), reviews: reviews(),
+      audience: v("audience"), about: v("about"), special: v("special"), process: v("process"), reviews: reviews(),
       logo: state.logo, photos: state.photos,
       accent: $("#useAccent").checked ? $("#accent").value : "",
+      effect: state.effect, scene: state.scene,
       sections: { ...state.sections },
     };
   }
@@ -501,7 +560,7 @@
   function aiPayload(d) {
     return {
       industry: d.industry, tone: d.tone, name: d.name, city: d.city,
-      services: d.services.map((s) => ({ title: s.title, desc: s.desc })), audience: d.audience, about: d.about,
+      services: d.services.map((s) => ({ title: s.title, desc: s.desc })), audience: d.audience, about: d.about, special: d.special, process: d.process,
     };
   }
 

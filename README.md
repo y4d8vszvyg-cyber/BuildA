@@ -17,13 +17,24 @@ KI-Website-Generator für lokale Unternehmen: 6 Fragen beantworten → fertige, 
 
 ## Design
 
-- **Passend zur Branche** (Standard): Jede Branche hat ein eigenes Farb- und Schriftpaar aus der UI/UX-Pro-Max-Datenbank, z. B. Petrol und Grün mit Figtree für Praxen, Grau und Signalorange für Handwerker, dunkel mit Barlow Condensed für Fitness. Die übrigen sieben Stile bleiben wählbar.
+- **Passend zur Branche** (Standard): Jede Branche hat ein eigenes Farb- und Schriftpaar aus der UI/UX-Pro-Max-Datenbank, z. B. Petrol und Grün mit Figtree für Praxen, Grau und Signalorange für Handwerker, dunkel mit Barlow Condensed für Fitness. Die übrigen elf Stile (u. a. Luxus, Pastell, Kräftig, Retro) bleiben wählbar. Neue Branchen: Bäckerei, Tattoo, Immobilien, Kanzlei, Hundesalon, Ferienwohnung, Nachhilfe/Musikschule, Garten- & Landschaftsbau.
 - **Kontrast:** Akzentfarben, auch eine eigene Farbe des Kunden, werden automatisch so angepasst, dass Text mindestens 4,5:1 erreicht (WCAG AA).
 - **Mobil und barrierearm:** Menü auf dem Handy, sichtbarer Tastaturfokus, „Zum Inhalt springen“, Formular mit sichtbaren Feldbeschriftungen, Tippflächen ab 44 px, Rücksicht auf „Bewegung reduzieren“ und den unteren Bildschirmrand beim iPhone.
 
+## 3D-Erlebnis
+
+Im Design-Schritt wählbar, sobald das Unternehmen ausführlich beschrieben ist (mindestens 400 Zeichen in „Wer seid ihr?“, „Was macht euch besonders?“ und „Ablauf“ zusammen; der Builder zeigt einen Zähler).
+
+- Eine 3D-Szene (Three.js, WebGL) in den Farben des Designs. Sie liegt hinter dem Startbereich und den Story-Kapiteln und bewegt sich beim Scrollen: Das Objekt wechselt die Seite, verformt sich und ordnet sich neu an.
+- Vier Motive: Fließende Form, Partikel, Geometrie, Ringe. Standard je nach Branche, z. B. Partikel für Restaurants und Ringe für Fitness.
+- Story-Kapitel als Glas-Karten. Die KI schreibt sie aus der Beschreibung; ohne KI werden die eigenen Worte des Kunden verwendet.
+- Inhalte blenden beim Scrollen mit leichter 3D-Kippung ein; Karten neigen sich mit der Maus.
+- Rücksichtsvoll: Bei „Bewegung reduzieren“ gibt es keine Animationen, nur ein ruhiges Bild. Ohne WebGL oder wenn Three.js nicht lädt, erscheint ein Farbverlauf. Am Handy wird mit weniger Details gerendert, und die Szene pausiert, sobald die Story vorbei oder der Tab im Hintergrund ist.
+- Three.js 0.147 wird von jsDelivr geladen und per Subresource Integrity geprüft.
+
 ## Buchen- und Kaufen-Buttons
 
-Im Schritt „Leistungen & Preise“ wählt der Kunde den Button, der bei jeder Leistung erscheint: Anfragen, Termin buchen, Reservieren, Kaufen oder Bestellen. Vorschlag je nach Branche, z. B. „Termin buchen“ für Friseure und „Reservieren“ für Restaurants.
+Im Schritt „Leistungen & Preise“ wählt der Kunde den Button, der bei jeder Leistung erscheint: Anfragen, Termin buchen, Jetzt buchen, Reservieren, Probetermin, Angebot anfordern, Rückruf, Kaufen, Bestellen oder Gutschein. Vorschlag je nach Branche, z. B. „Termin buchen“ für Friseure und „Reservieren“ für Restaurants.
 
 - **Mit Link** (Treatwell, Shore, Calendly, Doctolib, OpenTable, Stripe- oder PayPal-Zahlungslink): Alle Buttons öffnen diesen Link, auf dem Handy kommt er zusätzlich in die Leiste unten. Für Google wird er als Buchungs- bzw. Kaufaktion (Schema.org) hinterlegt.
 - **Ohne Link:** Der Button führt zum Kontaktformular, und die Leistung steht schon in der Nachricht, z. B. „Ich möchte einen Termin buchen: Haarschnitt“.

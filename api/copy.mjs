@@ -20,6 +20,14 @@ const INDUSTRIES = {
   praxis: "Praxis / Therapie (keine Heilversprechen)",
   reinigung: "Reinigungsfirma / Dienstleister",
   beratung: "Beratung / Büro",
+  baeckerei: "Bäckerei / Konditorei",
+  tattoo: "Tattoo- und Piercingstudio",
+  immobilien: "Immobilienmakler",
+  kanzlei: "Kanzlei für Recht oder Steuern (keine Erfolgsversprechen)",
+  tier: "Hundesalon / Tierpflege",
+  unterkunft: "Ferienwohnung / Pension",
+  unterricht: "Nachhilfe / Musikschule",
+  garten: "Garten- und Landschaftsbau",
   sonstiges: "lokales Unternehmen",
 };
 // Struktur, die generator.js im Browser erwartet (siehe mergeCopy dort).
@@ -28,11 +36,17 @@ const CopySchema = z.object({
   tagline: z.string().describe("Ein Satz unter der Überschrift, sagt konkret, was der Kunde bekommt"),
   cta: z.string().describe("Button-Text, 2–3 Wörter, z. B. 'Termin buchen'"),
   aboutTitle: z.string().describe("Kurze Überschrift für den Über-uns-Bereich"),
-  about: z.array(z.string()).describe("1–2 kurze Absätze Über-uns-Text, nur auf Basis der Angaben"),
+  about: z.array(z.string()).describe("1–3 kurze Absätze Über-uns-Text, nur auf Basis der Angaben. Die Besonderheiten nicht wörtlich wiederholen, sie stehen separat auf der Seite"),
   usp: z.array(z.string()).describe("Genau 3 kurze, konkrete Vorteile, je max. 5 Wörter"),
   services: z
     .array(z.object({ title: z.string().describe("exakt wie angegeben"), text: z.string().describe("ein sachlicher Satz, was der Kunde bekommt") }))
     .describe("Ein Eintrag pro angegebener Leistung, gleiche Reihenfolge und gleicher Titel"),
+  story: z
+    .array(z.object({ title: z.string().describe("2–5 Wörter"), text: z.string().describe("1–2 Sätze") }))
+    .describe("3–4 Kapitel für eine Scroll-Geschichte über das Unternehmen (Herkunft, Besonderheiten, Arbeitsweise, Versprechen), nur aus den Angaben"),
+  process: z
+    .array(z.object({ title: z.string().describe("2–4 Wörter"), text: z.string().describe("ein Satz") }))
+    .describe("Die Schritte aus dem angegebenen Ablauf, gleiche Reihenfolge, nur sprachlich geglättet. Leer lassen, wenn kein Ablauf angegeben ist"),
   faq: z.array(z.object({ q: z.string(), a: z.string() })).describe("4 Fragen, die Kunden dieser Branche wirklich stellen, mit kurzen Antworten"),
   seoTitle: z.string().describe("SEO-Title, max. 60 Zeichen, mit Leistung und Stadt"),
   seoDesc: z.string().describe("Meta-Description, 140–155 Zeichen, mit Stadt"),
@@ -50,7 +64,7 @@ Stil:
 - Ansprache genau wie angegeben (du oder Sie) und durchgehend gleich.
 
 Inhalt:
-- Nutze die Angaben zum Unternehmen ("Über uns") als einzige Quelle für Fakten. Wenn dort nichts steht, bleib allgemein.
+- Nutze die Angaben zum Unternehmen ("Über uns", "Besonderheiten", "Ablauf") als einzige Quelle für Fakten. Wenn dort nichts steht, bleib allgemein.
 - Erfinde keine überprüfbaren Fakten: keine Bewertungen, Kundenzahlen, Jahreszahlen, Auszeichnungen, Zertifikate,
   Namen, Garantien oder Preise. Solche Angaben wären für den Kunden abmahnfähig.
 - Keine Heilversprechen bei Gesundheitsthemen.
@@ -71,7 +85,10 @@ export function sanitize(input = {}) {
     city: s(input.city, 60),
     services,
     audience: s(input.audience, 80),
-    about: s(input.about, 600),
+    about: s(input.about, 1200),
+    special: s(input.special, 800),
+    // Zeilenumbrüche trennen die Ablauf-Schritte und bleiben deshalb erhalten
+    process: String(input.process ?? "").split(/\n+/).map((x) => s(x, 200)).filter(Boolean).slice(0, 8).join("\n").slice(0, 800),
   };
 }
 
@@ -90,6 +107,8 @@ export async function generateCopy(input) {
     `Ansprache: ${d.tone === "sie" ? "Sie" : "du"}`,
     `Zielgruppe: ${d.audience || "allgemein"}`,
     `Über uns (vom Inhaber): ${d.about || "(keine Angaben)"}`,
+    `Besonderheiten (vom Inhaber): ${d.special || "(keine Angaben)"}`,
+    `Ablauf (vom Inhaber, ein Schritt pro Zeile):\n${d.process || "(keiner angegeben)"}`,
     `Leistungen:\n${serviceLines}`,
   ].join("\n");
 
